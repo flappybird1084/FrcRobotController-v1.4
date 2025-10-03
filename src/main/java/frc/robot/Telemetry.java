@@ -31,6 +31,11 @@ public class Telemetry {
     public Telemetry(double maxSpeed) {
         MaxSpeed = maxSpeed;
         SignalLogger.start();
+
+        /* Set up the module state Mechanism2d telemetry */
+        for (int i = 0; i < 4; ++i) {
+            SmartDashboard.putData("Module " + i, m_moduleMechanisms[i]);
+        }
     }
 
     /* What to publish over networktables for telemetry */
@@ -92,10 +97,6 @@ public class Telemetry {
         driveTimestamp.set(state.Timestamp);
         driveOdometryFrequency.set(1.0 / state.OdometryPeriod);
 
-        SmartDashboard.putNumber("IMU Heading", Robot.currentAngle);
-        SmartDashboard.putNumber("Target Angle", Robot.targetAngle);
-        SmartDashboard.putNumber("Target Rot. Rate", RobotContainer.targetRotationalRate);
-
         /* Also write to log file */
         m_poseArray[0] = state.Pose.getX();
         m_poseArray[1] = state.Pose.getY();
@@ -116,13 +117,11 @@ public class Telemetry {
         fieldTypePub.set("Field2d");
         fieldPub.set(m_poseArray);
 
-        /* Telemeterize the module states to a Mechanism2d */
+        /* Telemeterize each module state to a Mechanism2d */
         for (int i = 0; i < 4; ++i) {
             m_moduleSpeeds[i].setAngle(state.ModuleStates[i].angle);
             m_moduleDirections[i].setAngle(state.ModuleStates[i].angle);
             m_moduleSpeeds[i].setLength(state.ModuleStates[i].speedMetersPerSecond / (2 * MaxSpeed));
-
-            SmartDashboard.putData("Module " + i, m_moduleMechanisms[i]);
         }
     }
 }
