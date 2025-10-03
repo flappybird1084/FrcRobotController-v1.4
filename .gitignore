@@ -1,0 +1,7 @@
+build/
+# macOS specific files
+.DS_Store
+
+# Windows specific files and folders
+Thumbs.db
+ehthumbs.db
