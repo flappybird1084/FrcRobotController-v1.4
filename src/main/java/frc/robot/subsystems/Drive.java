@@ -1,8 +1,16 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.config.PIDConstants;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -11,10 +19,14 @@ import frc.robot.constants.Constants;
 
 public class Drive extends SubsystemBase {
     private final SwerveRequest.FieldCentricFacingAngle drive = new SwerveRequest.FieldCentricFacingAngle();
+    private final SwerveRequest.ApplyRobotSpeeds autoDrive = new SwerveRequest.ApplyRobotSpeeds();
     CommandSwerveDrivetrain drivetrain;
     double MaxSpeed = Constants.MaxSpeed;
     double scaling = Constants.scaling;
     CommandXboxController joystick;
+
+    private Transform2d poseOffset = new Transform2d();
+    private Pose2d cachedPose = new Pose2d();
 
     public double targetAngle;
     public static double kP; // 3.5
@@ -29,9 +41,12 @@ public class Drive extends SubsystemBase {
         kP = 3; // 5
         kI = 0.0;
         kD = 0.5;
+
+        configureAutoBuilder();
     }
 
     public void periodic(){
+        cachedPose = drivetrain.getState().Pose;
         if(Math.abs(joystick.getRightX()) >= 0.06) {
             targetAngle += joystick.getRightX()*4;
             kP = 3.0;
@@ -71,6 +86,47 @@ public class Drive extends SubsystemBase {
 
     public void resetTargetAngle(double angle){
         targetAngle = angle;
+    }
+
+    private void configureAutoBuilder() {
+        RobotConfig config;
+        try {
+            config = RobotConfig.fromGUISettings();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+        AutoBuilder.configure(
+                this::getPose,
+                this::resetPose,
+                this::getRobotRelativeSpeeds,
+                (speeds, feedforwards) -> driveRobotRelative(speeds),
+                new PPHolonomicDriveController(
+                        new PIDConstants(5.0, 0.0, 0.0),
+                        new PIDConstants(5.0, 0.0, 0.0)
+                ),
+                config,
+                () -> DriverStation.getAlliance().isPresent()
+                        && DriverStation.getAlliance().get() == DriverStation.Alliance.Red,
+                this
+        );
+    }
+
+    public Pose2d getPose() {
+        return cachedPose.transformBy(poseOffset);
+    }
+
+    public void resetPose(Pose2d pose) {
+        poseOffset = pose.minus(cachedPose);
+    }
+
+    public ChassisSpeeds getRobotRelativeSpeeds() {
+        return drivetrain.getState().Speeds;
+    }
+
+    public void driveRobotRelative(ChassisSpeeds speeds) {
+        drivetrain.setControl(autoDrive.withSpeeds(speeds));
     }
 
 }
