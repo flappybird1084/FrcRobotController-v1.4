@@ -6,34 +6,34 @@ import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
-public class Coral extends SubsystemBase {
+public class Shooter extends SubsystemBase {
     CommandXboxController joystick;
     
-    public Coral(CommandXboxController joystick)
+    public Shooter(CommandXboxController joystick)
     {
         this.joystick=joystick;
     }
 
-    public static final SparkMax coral1 = new SparkMax(24, MotorType.kBrushless);
+    public static final SparkMax shooter1 = new SparkMax(24, MotorType.kBrushless);
     
-    public static final RelativeEncoder encoder1 = coral1.getEncoder();
+    public static final RelativeEncoder encoder1 = shooter1.getEncoder();
 
     public static void setCoralPower(double power) {
-        coral1.set(power);
+        shooter1.set(power); // Only 1 direction
     }
 
     public double getCoralPosition() {
         return encoder1.getPosition();
     }
 
+    // Continuous movement
     public Command getDefaultCommand() {
-       InstantCommand command = new InstantCommand(()->{
-            setCoralPower(0.2 * (joystick.getRightY()));
-       });
-       command.addRequirements(this);
-       return command;
+        return new RunCommand(() -> {
+            setCoralPower(joystick.getRightY());
+        }, this);
     }
 }

@@ -24,6 +24,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Coral;
+import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
     public double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -40,6 +41,7 @@ public class RobotContainer {
     public static Drive driveSubsystem;
     public static Elevator elevatorSubsystem;
     public static Coral coralSubsystem;
+    public static Shooter shooterSubsystem;
     
     public static final int PigeonID = 15;
     public static final Pigeon2 imu = new Pigeon2(RobotContainer.PigeonID);
@@ -54,6 +56,7 @@ public class RobotContainer {
 
     public RobotContainer() {
         driveSubsystem = new Drive(drivetrain, joystick);
+        shooterSubsystem = new Shooter(coJoystick);
         // elevatorSubsystem = new Elevator(coJoystick);
         // *** coralSubsystem = new Coral(coJoystick);
         configureBindings();
@@ -70,6 +73,7 @@ public class RobotContainer {
         driveSubsystem.useDefaultCommand();
         // elevatorSubsystem.setDefaultCommand(elevatorSubsystem.getDefaultCommand());
         // *** coralSubsystem.setDefaultCommand(coralSubsystem.getDefaultCommand());
+        shooterSubsystem.setDefaultCommand(shooterSubsystem.getDefaultCommand());
 
         // drivetrain.setDefaultCommand(
         //     // Drivetrain will execute this command periodically
@@ -100,6 +104,12 @@ public class RobotContainer {
         joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
         joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
+        joystick.x().onTrue(
+                new InstantCommand(() -> {
+                    driveSubsystem.pathRelative(1, 0, Math.toRadians(90)).schedule();
+                }, driveSubsystem
+        ));
+        
         // reset the field-centric heading on left bumper press
         joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric())
         .andThen(new InstantCommand(()->
