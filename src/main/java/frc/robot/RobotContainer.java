@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.*;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -102,6 +103,8 @@ public class RobotContainer {
                     driveSubsystem.pathRelative(1, 0, Math.toRadians(90)).schedule();
                 }, driveSubsystem
         ));
+
+        joystick.y().onTrue(new InstantCommand(() -> driveSubsystem.resetPose(new Pose2d()), driveSubsystem));
         
         // reset the field-centric heading on left bumper press
         joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric())
