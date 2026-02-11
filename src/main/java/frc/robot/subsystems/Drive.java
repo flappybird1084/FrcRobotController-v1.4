@@ -14,7 +14,6 @@ import com.pathplanner.lib.path.Waypoint;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
@@ -32,9 +31,6 @@ public class Drive extends SubsystemBase {
     double scaling = Constants.scaling;
     CommandXboxController joystick;
     private Command lastPath;
-
-    private Transform2d poseOffset = new Transform2d();
-    private Pose2d cachedPose = new Pose2d();
 
     public double targetAngle;
     public static double kP; // 3.5
@@ -77,7 +73,6 @@ public class Drive extends SubsystemBase {
     }
 
     public void periodic(){
-        cachedPose = drivetrain.getState().Pose;
         double gyroAngle = Constants.imu.getYaw().getValueAsDouble();
 
         if(Math.abs(joystick.getRightX()) >= 0.08) {
@@ -117,7 +112,7 @@ public class Drive extends SubsystemBase {
     }
 
     public Pose2d getPose() {
-        return cachedPose.transformBy(poseOffset);
+        return drivetrain.getState().Pose;
     }
 
     public void cancelLastPath() {
@@ -130,7 +125,7 @@ public class Drive extends SubsystemBase {
     }
 
     public void resetPose(Pose2d pose) {
-        poseOffset = pose.minus(cachedPose);
+        drivetrain.resetPose(pose);
     }
 
     public ChassisSpeeds getRobotRelativeSpeeds() {
