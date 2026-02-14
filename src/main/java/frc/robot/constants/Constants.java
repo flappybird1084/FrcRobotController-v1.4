@@ -11,4 +11,6 @@ public class Constants {
 
     public static final int pigeonID = 15;
     public static final Pigeon2 imu = new Pigeon2(Constants.pigeonID);
+
+    public static final int udpTelemetryPort = 5800;
 }

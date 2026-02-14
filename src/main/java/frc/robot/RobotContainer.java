@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 
+import frc.robot.constants.Constants;
 import frc.robot.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive;
@@ -33,7 +34,7 @@ public class RobotContainer {
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
     public static Drive driveSubsystem;
-    public static Elevator elevatorSubsystem;
+    // public static Elevator elevatorSubsystem;
     public static Coral coralSubsystem;
     public static Shooter shooterSubsystem;
     
@@ -41,6 +42,7 @@ public class RobotContainer {
     public static final Pigeon2 imu = new Pigeon2(RobotContainer.PigeonID);
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
+    private final UdpTelemetryReceiver udpTelemetryReceiver = new UdpTelemetryReceiver(Constants.udpTelemetryPort);
 
     public static final CommandXboxController joystick = new CommandXboxController(0);
 
@@ -53,6 +55,7 @@ public class RobotContainer {
         shooterSubsystem = new Shooter(coJoystick);
         // elevatorSubsystem = new Elevator(coJoystick);
         // *** coralSubsystem = new Coral(coJoystick);
+        udpTelemetryReceiver.start();
         configureBindings();
     }
 

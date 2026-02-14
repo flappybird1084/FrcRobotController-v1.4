@@ -14,6 +14,8 @@ import frc.robot.RobotContainer;
 public final class AprilTags {
     private AprilTags() {}
 
+    private static volatile int detectedCount;
+
     // Welded Perimeter coordinates from the provided table (inches, Z-rotation degrees).
     private static final Map<Integer, Pose3d> TAG_POSES = Map.ofEntries(
         Map.entry(1, poseInches(467.64, 292.31, 35.00, 180)),
@@ -68,6 +70,14 @@ public final class AprilTags {
 
     public static Map<Integer, Pose3d> getAllPoses() {
         return TAG_POSES;
+    }
+
+    public static void setDetectedCount(int count) {
+        detectedCount = Math.max(0, count);
+    }
+
+    public static int getDetectedCount() {
+        return detectedCount;
     }
 
     public static Pose2d getRobotOffset(AprilTagMeasurement tagA, AprilTagMeasurement tagB) {

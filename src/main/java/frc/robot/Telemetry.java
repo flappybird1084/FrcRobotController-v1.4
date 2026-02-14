@@ -9,9 +9,11 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringPublisher;
+import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
@@ -19,6 +21,8 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
+import frc.robot.constants.Constants;
+import frc.robot.subsystems.AprilTags;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Shooter;
@@ -58,6 +62,12 @@ public class Telemetry {
     private final NetworkTable table = inst.getTable("Pose");
     private final DoubleArrayPublisher fieldPub = table.getDoubleArrayTopic("robotPose").publish();
     private final StringPublisher fieldTypePub = table.getStringTopic(".type").publish();
+
+    /* UDP telemetry */
+    private final NetworkTable udpTable = inst.getTable("Udp");
+    private final StringSubscriber udpLastPacket = udpTable.getStringTopic("LastPacket").subscribe("");
+    private final DoubleSubscriber udpLastPacketBytes = udpTable.getDoubleTopic("LastPacketBytes").subscribe(0.0);
+    private final DoubleSubscriber udpLastPacketTimestamp = udpTable.getDoubleTopic("LastPacketTimestamp").subscribe(0.0);
 
     /* Mechanisms to represent the swerve module states */
     private final Mechanism2d[] m_moduleMechanisms = new Mechanism2d[] {
@@ -119,6 +129,11 @@ public class Telemetry {
         SmartDashboard.putNumber("target shooter rpm", Shooter.targetRpm);
         SmartDashboard.putNumber("current shooter rpm", Shooter.currentRpm);
         SmartDashboard.putNumber("shooter power", Shooter.shooterPower);
+        SmartDashboard.putString("udp last packet", udpLastPacket.get(""));
+        SmartDashboard.putNumber("udp last bytes", udpLastPacketBytes.get(0.0));
+        SmartDashboard.putNumber("udp last timestamp", udpLastPacketTimestamp.get(0.0));
+        SmartDashboard.putNumber("udp port", Constants.udpTelemetryPort);
+        SmartDashboard.putNumber("april tags detected", AprilTags.getDetectedCount());
 
         // SmartDashboard.putNumber("target pos", Elevator.getTargetPosition());
         // SmartDashboard.putNumber("current pos", Elevator.getCurrentPosition());
@@ -146,6 +161,6 @@ public class Telemetry {
             m_moduleSpeeds[i].setLength(state.ModuleStates[i].speedMetersPerSecond / (2 * MaxSpeed));
         }
 
-        SmartDashboard.putNumber("elevator1 position", RobotContainer.elevatorSubsystem.getElevatorPosition());
+        // SmartDashboard.putNumber("elevator1 position", RobotContainer.elevatorSubsystem.getElevatorPosition());
     }
 }
