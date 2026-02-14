@@ -11,8 +11,13 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation3d;
+import frc.robot.subsystems.AprilTags;
 
 public final class UdpTelemetryReceiver implements AutoCloseable {
+    public static volatile Pose2d robotOffset = new Pose2d();
+
     private final int port;
     private final NetworkTable table;
     private final StringPublisher lastPacketPublisher;
@@ -30,6 +35,10 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
         this.lastPacketPublisher = table.getStringTopic("LastPacket").publish();
         this.lastPacketBytesPublisher = table.getDoubleTopic("LastPacketBytes").publish();
         this.lastPacketTimestampPublisher = table.getDoubleTopic("LastPacketTimestamp").publish();
+    }
+
+    public static Pose2d getRobotOffset() {
+        return robotOffset;
     }
 
     public void start() {
@@ -59,6 +68,18 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                 lastPacketPublisher.set(payload);
                 lastPacketBytesPublisher.set(length);
                 lastPacketTimestampPublisher.set(Timer.getFPGATimestamp());
+                try {
+                    var tags = AprilTags.parseJson(payload);
+                    AprilTags.setDetectedCount(tags.size());
+                    if (!tags.isEmpty()) {
+                        robotOffset = AprilTags.getRobotOffsetSingleTag(tags.get(0), new Translation3d());
+                    } else {
+                        robotOffset = new Pose2d();
+                    }
+                } catch (RuntimeException ex) {
+                    AprilTags.setDetectedCount(0);
+                    robotOffset = new Pose2d();
+                }
             }
         } catch (IOException ex) {
             lastPacketPublisher.set("UDP error: " + ex.getMessage());

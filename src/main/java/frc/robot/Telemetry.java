@@ -43,6 +43,7 @@ public class Telemetry {
         for (int i = 0; i < 4; ++i) {
             SmartDashboard.putData("Module " + i, m_moduleMechanisms[i]);
         }
+        SmartDashboard.putNumber("april tags detected", 0);
     }
 
     /* What to publish over networktables for telemetry */
@@ -130,10 +131,10 @@ public class Telemetry {
         SmartDashboard.putNumber("current shooter rpm", Shooter.currentRpm);
         SmartDashboard.putNumber("shooter power", Shooter.shooterPower);
         SmartDashboard.putString("udp last packet", udpLastPacket.get(""));
-        SmartDashboard.putNumber("udp last bytes", udpLastPacketBytes.get(0.0));
         SmartDashboard.putNumber("udp last timestamp", udpLastPacketTimestamp.get(0.0));
-        SmartDashboard.putNumber("udp port", Constants.udpTelemetryPort);
         SmartDashboard.putNumber("april tags detected", AprilTags.getDetectedCount());
+        SmartDashboard.putNumber("single-tag robot offset x", UdpTelemetryReceiver.robotOffset.getX());
+        SmartDashboard.putNumber("single-tag robot offset y", UdpTelemetryReceiver.robotOffset.getY());
 
         // SmartDashboard.putNumber("target pos", Elevator.getTargetPosition());
         // SmartDashboard.putNumber("current pos", Elevator.getCurrentPosition());
