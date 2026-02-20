@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,6 +12,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Quaternion;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.RobotContainer;
@@ -63,6 +65,10 @@ public final class AprilTags {
         Map.entry(30, poseInches(0.30, 43.22, 21.75, 0)),
         Map.entry(31, poseInches(0.32, 147.47, 21.75, 0)),
         Map.entry(32, poseInches(0.32, 164.47, 21.75, 0))
+    );
+    private static final Set<Integer> PROCESSOR_TAG_IDS = Set.of(
+        8, 9, 10, 11, 5, 4, 3, 2,
+        27, 26, 25, 24, 21, 20, 19, 18
     );
 
     public static final class AprilTagMeasurement {
@@ -120,9 +126,25 @@ public final class AprilTags {
 
     public static Pose2d getRobotOffsetSingleTag(AprilTagMeasurement tag, Translation3d cameraToRobotOffset) {
         Pose2d currentPose = RobotContainer.driveSubsystem.getPose();
+        Optional<Pose2d> actualRobotPoseOpt = getRobotPoseSingleTag(tag, cameraToRobotOffset);
+        if (actualRobotPoseOpt.isEmpty()) {
+            return new Pose2d();
+        }
+        Pose2d actualRobotPose = actualRobotPoseOpt.get();
+        return new Pose2d(
+            actualRobotPose.getX() - currentPose.getX(),
+            actualRobotPose.getY() - currentPose.getY(),
+            actualRobotPose.getRotation().minus(currentPose.getRotation())
+        );
+    }
+
+    public static Optional<Pose2d> getRobotPoseSingleTag(
+        AprilTagMeasurement tag,
+        Translation3d cameraToRobotOffset
+    ) {
         Optional<Pose3d> tagPoseOpt = getPose(tag.id);
         if (tagPoseOpt.isEmpty()) {
-            return new Pose2d();
+            return Optional.empty();
         }
 
         Pose3d tagPose = tagPoseOpt.get();
@@ -138,12 +160,7 @@ public final class AprilTags {
         Translation3d fieldToRobotTrans = fieldToCameraTrans.plus(cameraToRobotOffset.rotateBy(fieldToCameraRot));
         Rotation2d fieldToRobotYaw = new Rotation2d(fieldToCameraRot.getZ());
 
-        Pose2d actualRobotPose = new Pose2d(fieldToRobotTrans.getX(), fieldToRobotTrans.getY(), fieldToRobotYaw);
-        return new Pose2d(
-            actualRobotPose.getX() - currentPose.getX(),
-            actualRobotPose.getY() - currentPose.getY(),
-            actualRobotPose.getRotation().minus(currentPose.getRotation())
-        );
+        return Optional.of(new Pose2d(fieldToRobotTrans.getX(), fieldToRobotTrans.getY(), fieldToRobotYaw));
     }
 
     public static Pose2d getRobotOffset(
@@ -152,10 +169,79 @@ public final class AprilTags {
         Translation3d cameraToRobotOffset
     ) {
         Pose2d currentPose = RobotContainer.driveSubsystem.getPose();
+        Optional<Pose2d> actualRobotPoseOpt = getRobotPose(tagA, tagB, cameraToRobotOffset, currentPose);
+        if (actualRobotPoseOpt.isEmpty()) {
+            return new Pose2d();
+        }
+        Pose2d actualRobotPose = actualRobotPoseOpt.get();
+
+        return new Pose2d(
+            actualRobotPose.getX() - currentPose.getX(),
+            actualRobotPose.getY() - currentPose.getY(),
+            actualRobotPose.getRotation().minus(currentPose.getRotation())
+        );
+    }
+
+    public static Optional<Pose2d> getRobotPose(
+        AprilTagMeasurement tagA,
+        AprilTagMeasurement tagB,
+        Translation3d cameraToRobotOffset
+    ) {
+        Pose2d currentPose = RobotContainer.driveSubsystem.getPose();
+        return getRobotPose(tagA, tagB, cameraToRobotOffset, currentPose);
+    }
+
+    public static Optional<Translation2d> getNearestProcessorDeltaSingleTag(
+        AprilTagMeasurement tag,
+        Translation3d cameraToRobotOffset
+    ) {
+        Optional<Pose2d> actualRobotPoseOpt = getRobotPoseSingleTag(tag, cameraToRobotOffset);
+        if (actualRobotPoseOpt.isEmpty()) {
+            return Optional.empty();
+        }
+        Optional<Pose3d> processorPoseOpt = getNearestProcessorPose(actualRobotPoseOpt.get());
+        if (processorPoseOpt.isEmpty()) {
+            return Optional.empty();
+        }
+        Pose2d robotPose = actualRobotPoseOpt.get();
+        Pose3d processorPose = processorPoseOpt.get();
+        return Optional.of(new Translation2d(
+            processorPose.getX() - robotPose.getX(),
+            processorPose.getY() - robotPose.getY()
+        ));
+    }
+
+    public static Optional<Translation2d> getNearestProcessorDelta(
+        AprilTagMeasurement tagA,
+        AprilTagMeasurement tagB,
+        Translation3d cameraToRobotOffset
+    ) {
+        Optional<Pose2d> actualRobotPoseOpt = getRobotPose(tagA, tagB, cameraToRobotOffset);
+        if (actualRobotPoseOpt.isEmpty()) {
+            return Optional.empty();
+        }
+        Optional<Pose3d> processorPoseOpt = getNearestProcessorPose(actualRobotPoseOpt.get());
+        if (processorPoseOpt.isEmpty()) {
+            return Optional.empty();
+        }
+        Pose2d robotPose = actualRobotPoseOpt.get();
+        Pose3d processorPose = processorPoseOpt.get();
+        return Optional.of(new Translation2d(
+            processorPose.getX() - robotPose.getX(),
+            processorPose.getY() - robotPose.getY()
+        ));
+    }
+
+    private static Optional<Pose2d> getRobotPose(
+        AprilTagMeasurement tagA,
+        AprilTagMeasurement tagB,
+        Translation3d cameraToRobotOffset,
+        Pose2d currentPose
+    ) {
         Optional<Pose3d> tagAPoseOpt = getPose(tagA.id);
         Optional<Pose3d> tagBPoseOpt = getPose(tagB.id);
         if (tagAPoseOpt.isEmpty() || tagBPoseOpt.isEmpty()) {
-            return new Pose2d();
+            return Optional.empty();
         }
 
         Pose3d tagAPose = tagAPoseOpt.get();
@@ -176,17 +262,30 @@ public final class AprilTags {
             cameraToRobotOffset.getX() * cameraYaw.getSin() + cameraToRobotOffset.getY() * cameraYaw.getCos(),
             cameraToRobotOffset.getZ()
         );
-        Pose2d actualRobotPose = new Pose2d(
+        return Optional.of(new Pose2d(
             cameraPose.getX() + offsetField.getX(),
             cameraPose.getY() + offsetField.getY(),
             cameraYaw
-        );
+        ));
+    }
 
-        return new Pose2d(
-            actualRobotPose.getX() - currentPose.getX(),
-            actualRobotPose.getY() - currentPose.getY(),
-            actualRobotPose.getRotation().minus(currentPose.getRotation())
-        );
+    private static Optional<Pose3d> getNearestProcessorPose(Pose2d robotPose) {
+        Pose3d bestPose = null;
+        double bestDist = Double.POSITIVE_INFINITY;
+        for (int id : PROCESSOR_TAG_IDS) {
+            Pose3d pose = TAG_POSES.get(id);
+            if (pose == null) {
+                continue;
+            }
+            double dx = pose.getX() - robotPose.getX();
+            double dy = pose.getY() - robotPose.getY();
+            double dist = Math.hypot(dx, dy);
+            if (dist < bestDist) {
+                bestDist = dist;
+                bestPose = pose;
+            }
+        }
+        return Optional.ofNullable(bestPose);
     }
 
     private static Pose3d poseInches(double xIn, double yIn, double zIn, double zRotDeg) {

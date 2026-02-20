@@ -21,10 +21,7 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
-import frc.robot.constants.Constants;
 import frc.robot.subsystems.AprilTags;
-import frc.robot.subsystems.Drive;
-import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Shooter;
 
 public class Telemetry {
@@ -135,6 +132,10 @@ public class Telemetry {
         SmartDashboard.putNumber("april tags detected", AprilTags.getDetectedCount());
         SmartDashboard.putNumber("single-tag robot offset x", UdpTelemetryReceiver.robotOffset.getX());
         SmartDashboard.putNumber("single-tag robot offset y", UdpTelemetryReceiver.robotOffset.getY());
+        SmartDashboard.putNumber("vision robot pose x", UdpTelemetryReceiver.robotPose.getX());
+        SmartDashboard.putNumber("vision robot pose y", UdpTelemetryReceiver.robotPose.getY());
+        SmartDashboard.putNumber("processor delta x", UdpTelemetryReceiver.processorDelta.getX());
+        SmartDashboard.putNumber("processor delta y", UdpTelemetryReceiver.processorDelta.getY());
 
         // SmartDashboard.putNumber("target pos", Elevator.getTargetPosition());
         // SmartDashboard.putNumber("current pos", Elevator.getCurrentPosition());

@@ -12,11 +12,14 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.subsystems.AprilTags;
 
 public final class UdpTelemetryReceiver implements AutoCloseable {
     public static volatile Pose2d robotOffset = new Pose2d();
+    public static volatile Pose2d robotPose = new Pose2d();
+    public static volatile Translation2d processorDelta = new Translation2d();
 
     private final int port;
     private final NetworkTable table;
@@ -72,13 +75,44 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                     var tags = AprilTags.parseJson(payload);
                     AprilTags.setDetectedCount(tags.size());
                     if (!tags.isEmpty()) {
-                        robotOffset = AprilTags.getRobotOffsetSingleTag(tags.get(0), new Translation3d());
+                        Translation3d cameraToRobotOffset = new Translation3d();
+                        AprilTags.AprilTagMeasurement tagA = null;
+                        AprilTags.AprilTagMeasurement tagB = null;
+                        for (var tag : tags) {
+                            if (AprilTags.getPose(tag.id).isPresent()) {
+                                if (tagA == null) {
+                                    tagA = tag;
+                                } else {
+                                    tagB = tag;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (tagA != null && tagB != null) {
+                            robotOffset = AprilTags.getRobotOffset(tagA, tagB, cameraToRobotOffset);
+                            robotPose = AprilTags.getRobotPose(tagA, tagB, cameraToRobotOffset).orElse(new Pose2d());
+                            processorDelta = AprilTags
+                                .getNearestProcessorDelta(tagA, tagB, cameraToRobotOffset)
+                                .orElse(new Translation2d());
+                        } else {
+                            AprilTags.AprilTagMeasurement tag = tags.get(0);
+                            robotOffset = AprilTags.getRobotOffsetSingleTag(tag, cameraToRobotOffset);
+                            robotPose = AprilTags.getRobotPoseSingleTag(tag, cameraToRobotOffset).orElse(new Pose2d());
+                            processorDelta = AprilTags
+                                .getNearestProcessorDeltaSingleTag(tag, cameraToRobotOffset)
+                                .orElse(new Translation2d());
+                        }
                     } else {
                         robotOffset = new Pose2d();
+                        robotPose = new Pose2d();
+                        processorDelta = new Translation2d();
                     }
                 } catch (RuntimeException ex) {
                     AprilTags.setDetectedCount(0);
                     robotOffset = new Pose2d();
+                    robotPose = new Pose2d();
+                    processorDelta = new Translation2d();
                 }
             }
         } catch (IOException ex) {
