@@ -145,7 +145,7 @@ public class Telemetry {
             Math.toDegrees(Math.atan2(
                 UdpTelemetryReceiver.processorDelta.getY(),
                 UdpTelemetryReceiver.processorDelta.getX()
-            ))
+            )) + UdpTelemetryReceiver.robotOffset.getRotation().getDegrees()
         );
 
         // SmartDashboard.putNumber("target pos", Elevator.getTargetPosition());
