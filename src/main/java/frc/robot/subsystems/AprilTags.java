@@ -71,11 +71,23 @@ public final class AprilTags {
         27, 26, 25, 24, 21, 20, 19, 18
     );
 
+    /**
+     * Represents a single AprilTag detection from vision.
+     */
     public static final class AprilTagMeasurement {
         public final int id;
         public final Translation3d translation;
         public final Rotation3d rotation;
 
+        /**
+         * Create a detection with tag ID, camera-to-tag translation, and rotation.
+         *
+         * @param id tag ID
+         * @param xMeters camera-to-tag X in meters
+         * @param yMeters camera-to-tag Y in meters
+         * @param zMeters camera-to-tag Z in meters
+         * @param rotation camera-to-tag rotation
+         */
         public AprilTagMeasurement(int id, double xMeters, double yMeters, double zMeters, Rotation3d rotation) {
             this.id = id;
             this.translation = new Translation3d(xMeters, yMeters, zMeters);
@@ -83,22 +95,49 @@ public final class AprilTags {
         }
     }
 
+    /**
+     * Look up the field pose for a tag ID.
+     *
+     * @param id tag ID
+     * @return field pose if known
+     */
     public static Optional<Pose3d> getPose(int id) {
         return Optional.ofNullable(TAG_POSES.get(id));
     }
 
+    /**
+     * Get all known field tag poses.
+     *
+     * @return map of tag ID to field pose
+     */
     public static Map<Integer, Pose3d> getAllPoses() {
         return TAG_POSES;
     }
 
+    /**
+     * Store the most recent detected tag count.
+     *
+     * @param count number of tags detected
+     */
     public static void setDetectedCount(int count) {
         detectedCount = Math.max(0, count);
     }
 
+    /**
+     * Get the most recent detected tag count.
+     *
+     * @return detected tag count
+     */
     public static int getDetectedCount() {
         return detectedCount;
     }
 
+    /**
+     * Parse UDP JSON payload into AprilTag measurements.
+     *
+     * @param json payload string
+     * @return list of measurements (may be empty)
+     */
     public static ArrayList<AprilTagMeasurement> parseJson(String json) {
         ArrayList<AprilTagMeasurement> measurements = new ArrayList<>();
         if (json == null || json.isBlank()) {
@@ -120,10 +159,24 @@ public final class AprilTags {
         return measurements;
     }
 
+    /**
+     * Compute robot pose delta vs current pose using two tags (no camera offset).
+     *
+     * @param tagA first detected tag measurement
+     * @param tagB second detected tag measurement
+     * @return delta pose (actual minus current), or zero pose if unavailable
+     */
     public static Pose2d getRobotOffset(AprilTagMeasurement tagA, AprilTagMeasurement tagB) {
         return getRobotOffset(tagA, tagB, new Translation3d());
     }
 
+    /**
+     * Compute robot pose delta vs current pose using a single tag.
+     *
+     * @param tag detected tag measurement
+     * @param cameraToRobotOffset camera-to-robot translation in robot frame
+     * @return delta pose (actual minus current), or zero pose if unavailable
+     */
     public static Pose2d getRobotOffsetSingleTag(AprilTagMeasurement tag, Translation3d cameraToRobotOffset) {
         Pose2d currentPose = RobotContainer.driveSubsystem.getPose();
         Optional<Pose2d> actualRobotPoseOpt = getRobotPoseSingleTag(tag, cameraToRobotOffset);
@@ -138,6 +191,13 @@ public final class AprilTags {
         );
     }
 
+    /**
+     * Compute robot field pose using a single tag.
+     *
+     * @param tag detected tag measurement
+     * @param cameraToRobotOffset camera-to-robot translation in robot frame
+     * @return robot pose if tag ID is known
+     */
     public static Optional<Pose2d> getRobotPoseSingleTag(
         AprilTagMeasurement tag,
         Translation3d cameraToRobotOffset
@@ -163,6 +223,14 @@ public final class AprilTags {
         return Optional.of(new Pose2d(fieldToRobotTrans.getX(), fieldToRobotTrans.getY(), fieldToRobotYaw));
     }
 
+    /**
+     * Compute robot pose delta vs current pose using two tags.
+     *
+     * @param tagA first detected tag measurement
+     * @param tagB second detected tag measurement
+     * @param cameraToRobotOffset camera-to-robot translation in robot frame
+     * @return delta pose (actual minus current), or zero pose if unavailable
+     */
     public static Pose2d getRobotOffset(
         AprilTagMeasurement tagA,
         AprilTagMeasurement tagB,
@@ -182,6 +250,14 @@ public final class AprilTags {
         );
     }
 
+    /**
+     * Compute robot field pose using two tags.
+     *
+     * @param tagA first detected tag measurement
+     * @param tagB second detected tag measurement
+     * @param cameraToRobotOffset camera-to-robot translation in robot frame
+     * @return robot pose if both tags are known
+     */
     public static Optional<Pose2d> getRobotPose(
         AprilTagMeasurement tagA,
         AprilTagMeasurement tagB,
@@ -191,6 +267,13 @@ public final class AprilTags {
         return getRobotPose(tagA, tagB, cameraToRobotOffset, currentPose);
     }
 
+    /**
+     * Compute the field-relative delta to the nearest processor using a single tag.
+     *
+     * @param tag detected tag measurement
+     * @param cameraToRobotOffset camera-to-robot translation in robot frame
+     * @return delta translation to nearest processor, if available
+     */
     public static Optional<Translation2d> getNearestProcessorDeltaSingleTag(
         AprilTagMeasurement tag,
         Translation3d cameraToRobotOffset
@@ -232,6 +315,15 @@ public final class AprilTags {
         ));
     }
 
+    /**
+     * Compute robot pose from two tags, disambiguating with current pose.
+     *
+     * @param tagA first detected tag measurement
+     * @param tagB second detected tag measurement
+     * @param cameraToRobotOffset camera-to-robot translation in robot frame
+     * @param currentPose drivetrain pose used to choose triangulation solution
+     * @return robot pose if both tags are known
+     */
     private static Optional<Pose2d> getRobotPose(
         AprilTagMeasurement tagA,
         AprilTagMeasurement tagB,
@@ -269,6 +361,12 @@ public final class AprilTags {
         ));
     }
 
+    /**
+     * Find the closest processor tag to the given robot pose.
+     *
+     * @param robotPose robot field pose
+     * @return nearest processor pose if any are defined
+     */
     private static Optional<Pose3d> getNearestProcessorPose(Pose2d robotPose) {
         Pose3d bestPose = null;
         double bestDist = Double.POSITIVE_INFINITY;
@@ -288,6 +386,15 @@ public final class AprilTags {
         return Optional.ofNullable(bestPose);
     }
 
+    /**
+     * Helper to build a Pose3d from inches and degrees.
+     *
+     * @param xIn x in inches
+     * @param yIn y in inches
+     * @param zIn z in inches
+     * @param zRotDeg rotation about Z in degrees
+     * @return Pose3d in meters and radians
+     */
     private static Pose3d poseInches(double xIn, double yIn, double zIn, double zRotDeg) {
         return new Pose3d(
             new Translation3d(
@@ -299,6 +406,16 @@ public final class AprilTags {
         );
     }
 
+    /**
+     * Triangulate camera XY from distances to two tags.
+     *
+     * @param tagA field pose of tag A
+     * @param distA camera-to-tag A distance
+     * @param tagB field pose of tag B
+     * @param distB camera-to-tag B distance
+     * @param currentPose used to select the closest intersection
+     * @return camera pose in field coordinates (rotation left as zero)
+     */
     private static Pose2d triangulate2d(Pose3d tagA, double distA, Pose3d tagB, double distB, Pose2d currentPose) {
         double x0 = tagA.getX();
         double y0 = tagA.getY();
@@ -332,6 +449,14 @@ public final class AprilTags {
         return d1 <= d2 ? candidate1 : candidate2;
     }
 
+    /**
+     * Extract a required integer field from JSON object text.
+     *
+     * @param pattern regex to match the field
+     * @param text object text
+     * @param fieldName field name for error messages
+     * @return parsed integer
+     */
     private static int extractInt(Pattern pattern, String text, String fieldName) {
         Matcher matcher = pattern.matcher(text);
         if (!matcher.find()) {
@@ -340,6 +465,14 @@ public final class AprilTags {
         return Integer.parseInt(matcher.group(1));
     }
 
+    /**
+     * Extract a required double field from JSON object text.
+     *
+     * @param pattern regex to match the field
+     * @param text object text
+     * @param fieldName field name for error messages
+     * @return parsed double
+     */
     private static double extractDouble(Pattern pattern, String text, String fieldName) {
         Matcher matcher = pattern.matcher(text);
         if (!matcher.find()) {
@@ -348,6 +481,12 @@ public final class AprilTags {
         return Double.parseDouble(matcher.group(1));
     }
 
+    /**
+     * Extract a quaternion from a JSON object.
+     *
+     * @param text object text
+     * @return quaternion as {w, x, y, z}
+     */
     private static double[] extractRotation(String text) {
         Matcher matcher = ROT_PATTERN.matcher(text);
         if (!matcher.find()) {
