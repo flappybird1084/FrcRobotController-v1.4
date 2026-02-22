@@ -95,7 +95,13 @@ public class RobotContainer {
         ));
 
         joystick.rightBumper().whileTrue(
-            Commands.run(() -> driveSubsystem.aimAtTag(UdpTelemetryReceiver.getRobotOffset()), driveSubsystem)
+            Commands.run(() -> {
+                if (UdpTelemetryReceiver.isProcessorTagDetected()) {
+                    driveSubsystem.aimAtTag(UdpTelemetryReceiver.getProcessorTagOffset());
+                } else {
+                    driveSubsystem.setAimAtTagEnabled(false);
+                }
+            }, driveSubsystem)
         );
         joystick.rightBumper().onFalse(
             new InstantCommand(() -> driveSubsystem.setAimAtTagEnabled(false), driveSubsystem)

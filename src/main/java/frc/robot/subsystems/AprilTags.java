@@ -115,6 +115,16 @@ public final class AprilTags {
     }
 
     /**
+     * Check if a tag ID is a processor tag.
+     *
+     * @param id tag ID
+     * @return true if the ID is listed as a processor tag
+     */
+    public static boolean isProcessorTag(int id) {
+        return PROCESSOR_TAG_IDS.contains(id);
+    }
+
+    /**
      * Store the most recent detected tag count.
      *
      * @param count number of tags detected

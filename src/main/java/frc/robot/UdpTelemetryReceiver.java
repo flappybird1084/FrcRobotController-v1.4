@@ -20,6 +20,8 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
     public static volatile Pose2d robotOffset = new Pose2d();
     public static volatile Pose2d robotPose = new Pose2d();
     public static volatile Translation2d processorDelta = new Translation2d();
+    public static volatile Pose2d processorTagOffset = new Pose2d();
+    public static volatile boolean processorTagDetected;
 
     private final int port;
     private final NetworkTable table;
@@ -42,6 +44,14 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
 
     public static Pose2d getRobotOffset() {
         return robotOffset;
+    }
+
+    public static Pose2d getProcessorTagOffset() {
+        return processorTagOffset;
+    }
+
+    public static boolean isProcessorTagDetected() {
+        return processorTagDetected;
     }
 
     public void start() {
@@ -78,12 +88,24 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                         Translation3d cameraToRobotOffset = new Translation3d();
                         AprilTags.AprilTagMeasurement tagA = null;
                         AprilTags.AprilTagMeasurement tagB = null;
+                        AprilTags.AprilTagMeasurement procA = null;
+                        AprilTags.AprilTagMeasurement procB = null;
                         for (var tag : tags) {
                             if (AprilTags.getPose(tag.id).isPresent()) {
                                 if (tagA == null) {
                                     tagA = tag;
                                 } else {
                                     tagB = tag;
+                                    break;
+                                }
+                            }
+                        }
+                        for (var tag : tags) {
+                            if (AprilTags.isProcessorTag(tag.id)) {
+                                if (procA == null) {
+                                    procA = tag;
+                                } else {
+                                    procB = tag;
                                     break;
                                 }
                             }
@@ -95,24 +117,42 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                             processorDelta = AprilTags
                                 .getNearestProcessorDelta(tagA, tagB, cameraToRobotOffset)
                                 .orElse(new Translation2d());
-                        } else {
-                            AprilTags.AprilTagMeasurement tag = tags.get(0);
-                            robotOffset = AprilTags.getRobotOffsetSingleTag(tag, cameraToRobotOffset);
-                            robotPose = AprilTags.getRobotPoseSingleTag(tag, cameraToRobotOffset).orElse(new Pose2d());
+                        } else if (tagA != null) {
+                            robotOffset = AprilTags.getRobotOffsetSingleTag(tagA, cameraToRobotOffset);
+                            robotPose = AprilTags.getRobotPoseSingleTag(tagA, cameraToRobotOffset).orElse(new Pose2d());
                             processorDelta = AprilTags
-                                .getNearestProcessorDeltaSingleTag(tag, cameraToRobotOffset)
+                                .getNearestProcessorDeltaSingleTag(tagA, cameraToRobotOffset)
                                 .orElse(new Translation2d());
+                        } else {
+                            robotOffset = new Pose2d();
+                            robotPose = new Pose2d();
+                            processorDelta = new Translation2d();
+                        }
+
+                        if (procA != null && procB != null) {
+                            processorTagDetected = true;
+                            processorTagOffset = AprilTags.getRobotOffset(procA, procB, cameraToRobotOffset);
+                        } else if (procA != null) {
+                            processorTagDetected = true;
+                            processorTagOffset = AprilTags.getRobotOffsetSingleTag(procA, cameraToRobotOffset);
+                        } else {
+                            processorTagDetected = false;
+                            processorTagOffset = new Pose2d();
                         }
                     } else {
                         robotOffset = new Pose2d();
                         robotPose = new Pose2d();
                         processorDelta = new Translation2d();
+                        processorTagDetected = false;
+                        processorTagOffset = new Pose2d();
                     }
                 } catch (RuntimeException ex) {
                     AprilTags.setDetectedCount(0);
                     robotOffset = new Pose2d();
                     robotPose = new Pose2d();
                     processorDelta = new Translation2d();
+                    processorTagDetected = false;
+                    processorTagOffset = new Pose2d();
                 }
             }
         } catch (IOException ex) {
