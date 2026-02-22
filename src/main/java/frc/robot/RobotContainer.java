@@ -94,6 +94,13 @@ public class RobotContainer {
             point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
         ));
 
+        joystick.rightBumper().whileTrue(
+            Commands.run(() -> driveSubsystem.aimAtTag(UdpTelemetryReceiver.getRobotOffset()), driveSubsystem)
+        );
+        joystick.rightBumper().onFalse(
+            new InstantCommand(() -> driveSubsystem.setAimAtTagEnabled(false), driveSubsystem)
+        );
+
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
         joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));

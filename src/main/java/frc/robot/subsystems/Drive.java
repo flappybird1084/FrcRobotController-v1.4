@@ -36,6 +36,7 @@ public class Drive extends SubsystemBase {
     public static double kP; // 3.5
     public static double kI; // 0
     public static double kD; // 0.15
+    private boolean aimAtTag;
 
 
     public Drive(CommandSwerveDrivetrain x, CommandXboxController joystick)
@@ -75,6 +76,13 @@ public class Drive extends SubsystemBase {
     public void periodic(){
         double gyroAngle = Constants.imu.getYaw().getValueAsDouble();
 
+        if (aimAtTag) {
+            kP = 3.0;
+            kI = 0.0001;
+            kD = 0.15;
+            return;
+        }
+
         if(Math.abs(joystick.getRightX()) >= 0.08) {
             targetAngle += joystick.getRightX()*4;
             kP = 3.0;
@@ -109,6 +117,19 @@ public class Drive extends SubsystemBase {
 
     public void resetTargetAngle(double angle){
         targetAngle = angle;
+    }
+
+    public void aimAtTag(Pose2d robotOffset) {
+        aimAtTag = true;
+        double currentYaw = Constants.imu.getYaw().getValueAsDouble();
+        targetAngle = currentYaw + robotOffset.getRotation().getDegrees();
+    }
+
+    public void setAimAtTagEnabled(boolean enabled) {
+        aimAtTag = enabled;
+        if (!enabled) {
+            targetAngle = Constants.imu.getYaw().getValueAsDouble();
+        }
     }
 
     public Pose2d getPose() {
