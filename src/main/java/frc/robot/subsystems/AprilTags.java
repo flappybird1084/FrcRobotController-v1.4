@@ -326,6 +326,18 @@ public final class AprilTags {
     }
 
     /**
+     * Compute a robot rotation-only offset to face a single tag using the camera-to-tag rotation.
+     *
+     * @param tag detected tag measurement
+     * @return pose with rotation set to the tag yaw (translation zero)
+     */
+    public static Pose2d getRotationOffsetSingleTag(AprilTagMeasurement tag) {
+        Rotation3d cameraToTagRot = tag.rotation;
+        Rotation2d yawError = new Rotation2d(cameraToTagRot.getZ());
+        return new Pose2d(0.0, 0.0, yawError);
+    }
+
+    /**
      * Compute robot pose from two tags, disambiguating with current pose.
      *
      * @param tagA first detected tag measurement

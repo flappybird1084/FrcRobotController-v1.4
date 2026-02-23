@@ -134,7 +134,7 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                             processorTagOffset = AprilTags.getRobotOffset(procA, procB, cameraToRobotOffset);
                         } else if (procA != null) {
                             processorTagDetected = true;
-                            processorTagOffset = AprilTags.getRobotOffsetSingleTag(procA, cameraToRobotOffset);
+                            processorTagOffset = AprilTags.getRotationOffsetSingleTag(procA);
                         } else {
                             processorTagDetected = false;
                             processorTagOffset = new Pose2d();

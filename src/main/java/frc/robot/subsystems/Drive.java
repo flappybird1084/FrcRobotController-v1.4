@@ -122,7 +122,7 @@ public class Drive extends SubsystemBase {
     public void aimAtTag(Pose2d robotOffset) {
         aimAtTag = true;
         double currentYaw = Constants.imu.getYaw().getValueAsDouble();
-        targetAngle = currentYaw - robotOffset.getRotation().getDegrees();
+        targetAngle = currentYaw + robotOffset.getRotation().getDegrees();
     }
 
     public void setAimAtTagEnabled(boolean enabled) {
@@ -142,7 +142,7 @@ public class Drive extends SubsystemBase {
     }
 
     public void resetFacingAngle() {
-        targetAngle = Math.toRadians(Constants.imu.getYaw().getValueAsDouble());
+        targetAngle = Constants.imu.getYaw().getValueAsDouble();
     }
 
     public void resetPose(Pose2d pose) {
