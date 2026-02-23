@@ -326,14 +326,23 @@ public final class AprilTags {
     }
 
     /**
-     * Compute a robot rotation-only offset to face a single tag using the camera-to-tag rotation.
+     * Compute a robot rotation-only offset to face a single tag using the
+     * camera-to-tag translation (bearing), not the tag's in-plane rotation.
+     *
+     * NOTE: This assumes OpenCV-style camera axes where +Z is forward and +X is right.
+     * If your camera uses WPILib axes (+X forward, +Y left), replace with atan2(y, x).
      *
      * @param tag detected tag measurement
-     * @return pose with rotation set to the tag yaw (translation zero)
+     * @return pose with rotation set to the bearing-to-tag yaw (translation zero)
      */
     public static Pose2d getRotationOffsetSingleTag(AprilTagMeasurement tag) {
-        Rotation3d cameraToTagRot = tag.rotation;
-        Rotation2d yawError = new Rotation2d(cameraToTagRot.getZ());
+        double x = tag.translation.getX();
+        double z = tag.translation.getZ();
+        if (Math.abs(x) < 1e-6 && Math.abs(z) < 1e-6) {
+            return new Pose2d();
+        }
+        // +X right means a target on the right should be a negative (clockwise) yaw.
+        Rotation2d yawError = new Rotation2d(-Math.atan2(x, z));
         return new Pose2d(0.0, 0.0, yawError);
     }
 
