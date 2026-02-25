@@ -84,7 +84,7 @@ public class Drive extends SubsystemBase {
         }
 
         if(Math.abs(joystick.getRightX()) >= 0.08) {
-            targetAngle += joystick.getRightX()*4;
+            targetAngle += -joystick.getRightX()*4;
             kP = 3.0;
             kI = 0.0001;
             kD = 0.15;
@@ -106,7 +106,7 @@ public class Drive extends SubsystemBase {
         return drivetrain.applyRequest(() ->
                  drive.withVelocityX(-joystick.getLeftY() * MaxSpeed * scaling) // Drive forward with negative Y (forward)
                     .withVelocityY(-joystick.getLeftX() * MaxSpeed * scaling) // Drive left with negative X (left)
-                    .withTargetDirection(new Rotation2d(-Math.toRadians(targetAngle))) // Drive counterclockwise with negative X (left)
+                    .withTargetDirection(new Rotation2d(Math.toRadians(targetAngle))) // Drive counterclockwise with negative X (left)
                     .withHeadingPID(kP, kI, kD)
                     );
     }
@@ -124,16 +124,14 @@ public class Drive extends SubsystemBase {
         if (yawError == null) {
             return;
         }
-        targetAngle = Constants.imu.getYaw().getValueAsDouble()
+        // targetAngle = Constants.imu.getYaw().getValueAsDouble()
+        targetAngle = targetAngle
             + yawError.getDegrees()
             + Constants.cameraFieldRotation.getDegrees();
     }
 
     public void setAimAtTagEnabled(boolean enabled) {
         aimAtTag = enabled;
-        if (!enabled) {
-            targetAngle = Constants.imu.getYaw().getValueAsDouble();
-        }
     }
 
     public Pose2d getPose() {

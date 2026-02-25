@@ -28,6 +28,8 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
     public static volatile Rotation2d processorYawError = new Rotation2d();
     public static volatile Rotation2d processorRotateAngle = new Rotation2d();
     public static volatile boolean processorTagDetected;
+    public static volatile double secondsSinceLastTag = Double.POSITIVE_INFINITY;
+    private static volatile double lastTagTimestamp = -1.0;
 
     private final int port;
     private final NetworkTable table;
@@ -72,6 +74,10 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
         return processorTagDetected;
     }
 
+    public static double getSecondsSinceLastTag() {
+        return secondsSinceLastTag;
+    }
+
     public void start() {
         if (thread != null) {
             return;
@@ -92,17 +98,20 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                 try {
                     socket.receive(packet);
                 } catch (SocketTimeoutException timeout) {
+                    updateSecondsSinceLastTag(Timer.getFPGATimestamp());
                     continue;
                 }
                 int length = packet.getLength();
                 String payload = new String(packet.getData(), packet.getOffset(), length, StandardCharsets.UTF_8);
+                double now = Timer.getFPGATimestamp();
                 lastPacketPublisher.set(payload);
                 lastPacketBytesPublisher.set(length);
-                lastPacketTimestampPublisher.set(Timer.getFPGATimestamp());
+                lastPacketTimestampPublisher.set(now);
                 try {
                     var tags = AprilTags.parseJson(payload);
                     AprilTags.setDetectedCount(tags.size());
                     if (!tags.isEmpty()) {
+                        lastTagTimestamp = now;
                         Translation3d cameraToRobotOffset = Constants.cameraToRobotOffset;
                         AprilTags.AprilTagMeasurement tagA = null;
                         AprilTags.AprilTagMeasurement tagB = null;
@@ -150,7 +159,7 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                             processorTagDetected = true;
                             processorTagOffset = computeProcessorTagOffset(nearestProcessor, null, cameraToRobotOffset);
                             nearestProcessorDelta = computeNearestProcessorDelta(nearestProcessor, cameraToRobotOffset);
-                            processorRotateAngle = computeProcessorRotateAngle(nearestProcessor, null);
+                            processorRotateAngle = robotOffset.getRotation();
                             processorYawError = processorRotateAngle;
                         } else {
                             processorTagDetected = false;
@@ -179,6 +188,8 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                     processorYawError = new Rotation2d();
                     processorRotateAngle = new Rotation2d();
                     nearestProcessorDelta = new Translation2d();
+                } finally {
+                    updateSecondsSinceLastTag(now);
                 }
             }
         } catch (IOException ex) {
@@ -255,5 +266,13 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
             targetTag = distB < distA ? tagB : tagA;
         }
         return new Rotation2d(targetTag.rotation.getZ());
+    }
+
+    private static void updateSecondsSinceLastTag(double now) {
+        if (lastTagTimestamp < 0.0) {
+            secondsSinceLastTag = Double.POSITIVE_INFINITY;
+        } else {
+            secondsSinceLastTag = Math.max(0.0, now - lastTagTimestamp);
+        }
     }
 }

@@ -94,13 +94,18 @@ public class RobotContainer {
             point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
         ));
 
-        joystick.rightBumper().whileTrue(
-            Commands.run(() -> {
-                if (UdpTelemetryReceiver.isProcessorTagDetected()) {
+        joystick.rightBumper().onTrue(
+            Commands.runOnce(() -> {
+                // if (joystick.getRightTriggerAxis() > 0.5
+                //     && UdpTelemetryReceiver.getSecondsSinceLastTag() > 0.4) {
+                //     return;
+                // }
+                if (UdpTelemetryReceiver.isProcessorTagDetected() && udpTelemetryReceiver.getSecondsSinceLastTag() < 0.4) {
                     driveSubsystem.aimAtTag(UdpTelemetryReceiver.getProcessorYawError());
-                } else {
-                    driveSubsystem.setAimAtTagEnabled(false);
-                }
+                } 
+                // else {
+                //     driveSubsystem.setAimAtTagEnabled(false);
+                // }
             }, driveSubsystem)
         );
         joystick.rightBumper().onFalse(

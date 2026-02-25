@@ -130,6 +130,7 @@ public class Telemetry {
         SmartDashboard.putString("udp last packet", udpLastPacket.get(""));
         SmartDashboard.putNumber("udp last timestamp", udpLastPacketTimestamp.get(0.0));
         SmartDashboard.putNumber("april tags detected", AprilTags.getDetectedCount());
+        SmartDashboard.putNumber("seconds since last tag", UdpTelemetryReceiver.getSecondsSinceLastTag());
         SmartDashboard.putNumber("single-tag robot offset x", UdpTelemetryReceiver.robotOffset.getX());
         SmartDashboard.putNumber("single-tag robot offset y", UdpTelemetryReceiver.robotOffset.getY());
         SmartDashboard.putNumber(
