@@ -140,12 +140,18 @@ public class Telemetry {
         SmartDashboard.putNumber("vision robot pose y", UdpTelemetryReceiver.robotPose.getY());
         SmartDashboard.putNumber("processor delta x", UdpTelemetryReceiver.processorDelta.getX());
         SmartDashboard.putNumber("processor delta y", UdpTelemetryReceiver.processorDelta.getY());
+        SmartDashboard.putNumber("nearest processor apriltag delta x", UdpTelemetryReceiver.nearestProcessorDelta.getX());
+        SmartDashboard.putNumber("nearest processor apriltag delta y", UdpTelemetryReceiver.nearestProcessorDelta.getY());
         SmartDashboard.putNumber(
             "processor delta theta (deg)",
             Math.toDegrees(Math.atan2(
                 UdpTelemetryReceiver.processorDelta.getY(),
                 UdpTelemetryReceiver.processorDelta.getX()
             )) + UdpTelemetryReceiver.robotOffset.getRotation().getDegrees()
+        );
+        SmartDashboard.putNumber(
+            "processor rotate angle",
+            UdpTelemetryReceiver.getProcessorRotateAngle().getDegrees()
         );
 
         // SmartDashboard.putNumber("target pos", Elevator.getTargetPosition());
