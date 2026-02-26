@@ -125,9 +125,13 @@ public class Telemetry {
         SmartDashboard.putNumber("joystick x", RobotContainer.joystick.getRightX());
         SmartDashboard.putNumber("left trigger", RobotContainer.joystick.getLeftTriggerAxis());
         if (RobotContainer.shooterSubsystem != null) {
-            SmartDashboard.putNumber("target shooter rpm", RobotContainer.shooterSubsystem.getTargetRpm());
-            SmartDashboard.putNumber("current shooter rpm", RobotContainer.shooterSubsystem.getCurrentRpm());
-            SmartDashboard.putNumber("shooter power", RobotContainer.shooterSubsystem.getShooterPower());
+            SmartDashboard.putBoolean("shooter enabled", RobotContainer.shooterSubsystem.isEnabled());
+            SmartDashboard.putNumber("shooter target voltage", RobotContainer.shooterSubsystem.getTargetVoltage());
+            SmartDashboard.putNumber("shooter voltage step", RobotContainer.shooterSubsystem.getVoltageStep());
+            SmartDashboard.putNumber("shooter applied voltage", RobotContainer.shooterSubsystem.getAppliedVoltage());
+            SmartDashboard.putNumber("shooter green rpm", RobotContainer.shooterSubsystem.getGreenRpm());
+            SmartDashboard.putNumber("shooter blue rpm", RobotContainer.shooterSubsystem.getBlueRpm());
+            SmartDashboard.putNumber("shooter avg rpm", RobotContainer.shooterSubsystem.getAverageRpm());
         }
         SmartDashboard.putString("udp last packet", udpLastPacket.get(""));
         SmartDashboard.putNumber("udp last timestamp", udpLastPacketTimestamp.get(0.0));

@@ -52,7 +52,7 @@ public class RobotContainer {
 
     public RobotContainer() {
         driveSubsystem = new Drive(drivetrain, joystick);
-        shooterSubsystem = new Shooter(coJoystick::getRightY);
+        shooterSubsystem = new Shooter();
         // elevatorSubsystem = new Elevator(coJoystick);
         // *** coralSubsystem = new Coral(coJoystick);
         udpTelemetryReceiver.start();
@@ -129,6 +129,11 @@ public class RobotContainer {
 
         coJoystick.x().onTrue(new InstantCommand(() -> shooterSubsystem.setEnabled(true), shooterSubsystem));
         coJoystick.x().onFalse(new InstantCommand(() -> shooterSubsystem.setEnabled(false), shooterSubsystem));
+
+        coJoystick.povUp().onTrue(new InstantCommand(() -> shooterSubsystem.increaseVoltage(), shooterSubsystem));
+        coJoystick.povDown().onTrue(new InstantCommand(() -> shooterSubsystem.decreaseVoltage(), shooterSubsystem));
+        coJoystick.rightBumper().onTrue(new InstantCommand(() -> shooterSubsystem.increaseVoltageStep(), shooterSubsystem));
+        coJoystick.leftBumper().onTrue(new InstantCommand(() -> shooterSubsystem.decreaseVoltageStep(), shooterSubsystem));
 
         // reset the field-centric heading on left bumper press
         joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric())
