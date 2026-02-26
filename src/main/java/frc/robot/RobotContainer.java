@@ -23,9 +23,9 @@ import frc.robot.constants.Constants;
 import frc.robot.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive;
-import frc.robot.subsystems.Elevator;
-import frc.robot.subsystems.Coral;
-import frc.robot.subsystems.Shooter;
+// import frc.robot.subsystems.Elevator;
+// import frc.robot.subsystems.Coral;
+// import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
     public double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -35,8 +35,8 @@ public class RobotContainer {
 
     public static Drive driveSubsystem;
     // public static Elevator elevatorSubsystem;
-    public static Coral coralSubsystem;
-    public static Shooter shooterSubsystem;
+    // public static Coral coralSubsystem;
+    // public static Shooter shooterSubsystem;
     
     public static final int PigeonID = 15;
     public static final Pigeon2 imu = new Pigeon2(RobotContainer.PigeonID);
@@ -52,7 +52,7 @@ public class RobotContainer {
 
     public RobotContainer() {
         driveSubsystem = new Drive(drivetrain, joystick);
-        shooterSubsystem = new Shooter(coJoystick);
+        // shooterSubsystem = new Shooter(coJoystick);
         // elevatorSubsystem = new Elevator(coJoystick);
         // *** coralSubsystem = new Coral(coJoystick);
         udpTelemetryReceiver.start();
@@ -70,7 +70,7 @@ public class RobotContainer {
         driveSubsystem.useDefaultCommand();
         // elevatorSubsystem.setDefaultCommand(elevatorSubsystem.getDefaultCommand());
         // *** coralSubsystem.setDefaultCommand(coralSubsystem.getDefaultCommand());
-        shooterSubsystem.setDefaultCommand(shooterSubsystem.getDefaultCommand());
+        // shooterSubsystem.setDefaultCommand(shooterSubsystem.getDefaultCommand());
 
         // drivetrain.setDefaultCommand(
         //     // Drivetrain will execute this command periodically
