@@ -173,8 +173,11 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                             processorTagOffset = computeProcessorTagOffset(nearestProcessor, null, cameraToRobotOffset);
                             nearestProcessorDelta = computeNearestProcessorDelta(nearestProcessor, cameraToRobotOffset);
                             nearestProcessorDeltaZ = computeNearestProcessorDeltaZ(nearestProcessor, cameraToRobotOffset);
-                            processorRotateAngle = computeProcessorRotateAngle(nearestProcessor, null);
-                            processorYawError = processorRotateAngle;
+                            Rotation2d rotateAngle = computeProcessorRotateAngle(nearestProcessor, null);
+                            if (isProcessorRotateAngleWithinLimit(rotateAngle)) {
+                                processorRotateAngle = rotateAngle;
+                                processorYawError = processorRotateAngle;
+                            }
                         } else {
                             processorTagDetected = false;
                             processorTagOffset = new Pose2d();
@@ -304,5 +307,12 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
         } else {
             secondsSinceLastTag = Math.max(0.0, now - lastTagTimestamp);
         }
+    }
+
+    private static boolean isProcessorRotateAngleWithinLimit(Rotation2d rotateAngle) {
+        double angleDeg = rotateAngle.getDegrees();
+        double minDeg = Constants.processorRotateAngleLimitDeg.get(0);
+        double maxDeg = Constants.processorRotateAngleLimitDeg.get(1);
+        return angleDeg >= minDeg && angleDeg <= maxDeg;
     }
 }

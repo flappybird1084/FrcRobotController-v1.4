@@ -5,6 +5,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import java.util.List;
 import frc.robot.constants.TunerConstants;
 
 public class Constants {
@@ -19,4 +20,5 @@ public class Constants {
     // Camera-to-robot transform in robot frame (meters) and camera yaw offset in field frame.
     public static final Translation3d cameraToRobotOffset = new Translation3d(0.0, 0.0, 0.0);
     public static final Rotation2d cameraFieldRotation = new Rotation2d(0.0);
+    public static final List<Double> processorRotateAngleLimitDeg = List.of(-75.0, 75.0);
 }
