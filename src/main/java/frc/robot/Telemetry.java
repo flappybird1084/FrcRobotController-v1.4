@@ -126,8 +126,8 @@ public class Telemetry {
         SmartDashboard.putNumber("left trigger", RobotContainer.joystick.getLeftTriggerAxis());
         if (RobotContainer.shooterSubsystem != null) {
             SmartDashboard.putBoolean("shooter enabled", RobotContainer.shooterSubsystem.isEnabled());
-            SmartDashboard.putNumber("shooter target voltage", RobotContainer.shooterSubsystem.getTargetVoltage());
-            SmartDashboard.putNumber("shooter voltage step", RobotContainer.shooterSubsystem.getVoltageStep());
+            SmartDashboard.putNumber("shooter target rpm", RobotContainer.shooterSubsystem.getTargetRpm());
+            SmartDashboard.putNumber("shooter rpm step", RobotContainer.shooterSubsystem.getRpmStep());
             SmartDashboard.putNumber("shooter applied voltage", RobotContainer.shooterSubsystem.getAppliedVoltage());
             SmartDashboard.putNumber("shooter green rpm", RobotContainer.shooterSubsystem.getGreenRpm());
             SmartDashboard.putNumber("shooter blue rpm", RobotContainer.shooterSubsystem.getBlueRpm());

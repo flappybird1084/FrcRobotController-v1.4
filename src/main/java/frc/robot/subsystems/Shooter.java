@@ -1,7 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 
@@ -13,17 +13,17 @@ public class Shooter extends SubsystemBase {
     private static final int GREEN_ID = 19;
     private static final int BLUE_ID = 3;
 
-    private static final double MIN_VOLTAGE = 0.0;
-    private static final double MAX_VOLTAGE = 12.0;
-    private static final double MIN_STEP = 0.05;
-    private static final double MAX_STEP = 2.0;
+    private static final double MIN_RPM = 0.0;
+    private static final double MAX_RPM = 6000.0;
+    private static final double MIN_RPM_STEP = 50.0;
+    private static final double MAX_RPM_STEP = 500.0;
 
     private final TalonFX greenMotor = new TalonFX(GREEN_ID);
     private final TalonFX blueMotor = new TalonFX(BLUE_ID);
-    private final VoltageOut voltageControl = new VoltageOut(0.0);
+    private final VelocityVoltage velocityControl = new VelocityVoltage(0.0);
 
-    private double targetVoltage = 0.0;
-    private double voltageStep = 0.25;
+    private double targetRpm = 0.0;
+    private double rpmStep = 250.0;
     private boolean enabled = false;
 
     public Shooter() {
@@ -43,40 +43,40 @@ public class Shooter extends SubsystemBase {
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
         if (!enabled) {
-            setVoltage(0.0);
+            setTargetRpm(0.0);
         }
     }
 
-    public void increaseVoltage() {
-        setVoltage(targetVoltage + voltageStep);
+    public void increaseRpm() {
+        setTargetRpm(targetRpm + rpmStep);
     }
 
-    public void decreaseVoltage() {
-        setVoltage(targetVoltage - voltageStep);
+    public void decreaseRpm() {
+        setTargetRpm(targetRpm - rpmStep);
     }
 
-    public void setVoltage(double voltage) {
-        targetVoltage = clamp(voltage, MIN_VOLTAGE, MAX_VOLTAGE);
+    public void setTargetRpm(double rpm) {
+        targetRpm = clamp(rpm, MIN_RPM, MAX_RPM);
     }
 
-    public double getTargetVoltage() {
-        return targetVoltage;
+    public double getTargetRpm() {
+        return targetRpm;
     }
 
-    public void increaseVoltageStep() {
-        setVoltageStep(voltageStep + 0.05);
+    public void increaseRpmStep() {
+        setRpmStep(rpmStep + 50.0);
     }
 
-    public void decreaseVoltageStep() {
-        setVoltageStep(voltageStep - 0.05);
+    public void decreaseRpmStep() {
+        setRpmStep(rpmStep - 50.0);
     }
 
-    public void setVoltageStep(double step) {
-        voltageStep = clamp(step, MIN_STEP, MAX_STEP);
+    public void setRpmStep(double step) {
+        rpmStep = clamp(step, MIN_RPM_STEP, MAX_RPM_STEP);
     }
 
-    public double getVoltageStep() {
-        return voltageStep;
+    public double getRpmStep() {
+        return rpmStep;
     }
 
     public boolean isEnabled() {
@@ -106,8 +106,9 @@ public class Shooter extends SubsystemBase {
             return;
         }
 
-        greenMotor.setControl(voltageControl.withOutput(targetVoltage));
-        blueMotor.setControl(voltageControl.withOutput(targetVoltage));
+        double targetRps = targetRpm / 60.0;
+        greenMotor.setControl(velocityControl.withVelocity(targetRps));
+        blueMotor.setControl(velocityControl.withVelocity(targetRps));
     }
 
     private static double clamp(double value, double min, double max) {
