@@ -224,7 +224,11 @@ public final class AprilTags {
         Rotation3d fieldToCameraRot = fieldToTagRot.rotateBy(new Rotation3d(cameraToTagRot.getQuaternion().inverse()));
 
         Translation3d fieldToTagTrans = tagPose.getTranslation();
-        Translation3d cameraToTagTrans = tag.translation;
+        Translation3d cameraToTagTrans = new Translation3d(
+            tag.translation.getZ(),
+            tag.translation.getX(),
+            tag.translation.getY()
+        );
         Translation3d fieldToCameraTrans = fieldToTagTrans.minus(cameraToTagTrans.rotateBy(fieldToCameraRot));
 
         Translation3d fieldToRobotTrans = fieldToCameraTrans.plus(cameraToRobotOffset.rotateBy(fieldToCameraRot));

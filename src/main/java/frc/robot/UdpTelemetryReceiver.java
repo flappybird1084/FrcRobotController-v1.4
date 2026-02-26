@@ -24,10 +24,12 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
     public static volatile Pose2d robotPose = new Pose2d();
     public static volatile Translation2d processorDelta = new Translation2d();
     public static volatile Translation2d nearestProcessorDelta = new Translation2d();
+    public static volatile double nearestProcessorDeltaZ;
     public static volatile Pose2d processorTagOffset = new Pose2d();
     public static volatile Rotation2d processorYawError = new Rotation2d();
     public static volatile Rotation2d processorRotateAngle = new Rotation2d();
     public static volatile boolean processorTagDetected;
+    public static volatile Translation3d singleTagTranslation = new Translation3d();
     public static volatile double secondsSinceLastTag = Double.POSITIVE_INFINITY;
     private static volatile double lastTagTimestamp = -1.0;
 
@@ -62,6 +64,10 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
         return nearestProcessorDelta;
     }
 
+    public static double getNearestProcessorDeltaZ() {
+        return nearestProcessorDeltaZ;
+    }
+
     public static Rotation2d getProcessorYawError() {
         return processorYawError;
     }
@@ -72,6 +78,10 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
 
     public static boolean isProcessorTagDetected() {
         return processorTagDetected;
+    }
+
+    public static Translation3d getSingleTagTranslation() {
+        return singleTagTranslation;
     }
 
     public static double getSecondsSinceLastTag() {
@@ -143,23 +153,27 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                             processorDelta = AprilTags
                                 .getNearestProcessorDelta(tagA, tagB, cameraToRobotOffset)
                                 .orElse(new Translation2d());
+                            singleTagTranslation = new Translation3d();
                         } else if (tagA != null) {
                             robotOffset = AprilTags.getRobotOffsetSingleTag(tagA, cameraToRobotOffset);
                             robotPose = AprilTags.getRobotPoseSingleTag(tagA, cameraToRobotOffset).orElse(new Pose2d());
                             processorDelta = AprilTags
                                 .getNearestProcessorDeltaSingleTag(tagA, cameraToRobotOffset)
                                 .orElse(new Translation2d());
+                            singleTagTranslation = tagA.translation;
                         } else {
                             robotOffset = new Pose2d();
                             robotPose = new Pose2d();
                             processorDelta = new Translation2d();
+                            singleTagTranslation = new Translation3d();
                         }
 
                         if (nearestProcessor != null) {
                             processorTagDetected = true;
                             processorTagOffset = computeProcessorTagOffset(nearestProcessor, null, cameraToRobotOffset);
                             nearestProcessorDelta = computeNearestProcessorDelta(nearestProcessor, cameraToRobotOffset);
-                            processorRotateAngle = robotOffset.getRotation();
+                            nearestProcessorDeltaZ = computeNearestProcessorDeltaZ(nearestProcessor, cameraToRobotOffset);
+                            processorRotateAngle = computeProcessorRotateAngle(nearestProcessor, null);
                             processorYawError = processorRotateAngle;
                         } else {
                             processorTagDetected = false;
@@ -167,6 +181,7 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                             processorYawError = new Rotation2d();
                             processorRotateAngle = new Rotation2d();
                             nearestProcessorDelta = new Translation2d();
+                            nearestProcessorDeltaZ = 0.0;
                         }
                     } else {
                         robotOffset = new Pose2d();
@@ -177,6 +192,8 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                         processorYawError = new Rotation2d();
                         processorRotateAngle = new Rotation2d();
                         nearestProcessorDelta = new Translation2d();
+                        nearestProcessorDeltaZ = 0.0;
+                        singleTagTranslation = new Translation3d();
                     }
                 } catch (RuntimeException ex) {
                     AprilTags.setDetectedCount(0);
@@ -188,6 +205,8 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                     processorYawError = new Rotation2d();
                     processorRotateAngle = new Rotation2d();
                     nearestProcessorDelta = new Translation2d();
+                    nearestProcessorDeltaZ = 0.0;
+                    singleTagTranslation = new Translation3d();
                 } finally {
                     updateSecondsSinceLastTag(now);
                 }
@@ -255,6 +274,14 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
         return new Translation2d(robotToTag.getX(), robotToTag.getY());
     }
 
+    private static double computeNearestProcessorDeltaZ(
+        AprilTags.AprilTagMeasurement tag,
+        Translation3d cameraToRobotOffset
+    ) {
+        Translation3d robotToTag = tag.translation.minus(cameraToRobotOffset);
+        return robotToTag.getZ();
+    }
+
     private static Rotation2d computeProcessorRotateAngle(
         AprilTags.AprilTagMeasurement tagA,
         AprilTags.AprilTagMeasurement tagB
@@ -265,7 +292,10 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
             double distB = Math.hypot(tagB.translation.getX(), tagB.translation.getY());
             targetTag = distB < distA ? tagB : tagA;
         }
-        return new Rotation2d(targetTag.rotation.getZ());
+        return new Rotation2d(
+            -Math.atan2(targetTag.translation.getX(), targetTag.translation.getZ())
+                + targetTag.rotation.getZ()
+        );
     }
 
     private static void updateSecondsSinceLastTag(double now) {

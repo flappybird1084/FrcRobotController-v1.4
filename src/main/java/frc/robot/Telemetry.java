@@ -131,8 +131,8 @@ public class Telemetry {
         SmartDashboard.putNumber("udp last timestamp", udpLastPacketTimestamp.get(0.0));
         SmartDashboard.putNumber("april tags detected", AprilTags.getDetectedCount());
         SmartDashboard.putNumber("seconds since last tag", UdpTelemetryReceiver.getSecondsSinceLastTag());
-        SmartDashboard.putNumber("single-tag robot offset x", UdpTelemetryReceiver.robotOffset.getX());
-        SmartDashboard.putNumber("single-tag robot offset y", UdpTelemetryReceiver.robotOffset.getY());
+        SmartDashboard.putNumber("single-tag robot offset x", UdpTelemetryReceiver.getSingleTagTranslation().getX());
+        SmartDashboard.putNumber("single-tag robot offset z", UdpTelemetryReceiver.getSingleTagTranslation().getZ());
         SmartDashboard.putNumber(
             "single-tag robot offset theta (deg)",
             UdpTelemetryReceiver.robotOffset.getRotation().getDegrees()
@@ -143,6 +143,7 @@ public class Telemetry {
         SmartDashboard.putNumber("processor delta y", UdpTelemetryReceiver.processorDelta.getY());
         SmartDashboard.putNumber("nearest processor apriltag delta x", UdpTelemetryReceiver.nearestProcessorDelta.getX());
         SmartDashboard.putNumber("nearest processor apriltag delta y", UdpTelemetryReceiver.nearestProcessorDelta.getY());
+        SmartDashboard.putNumber("nearest processor apriltag delta z", UdpTelemetryReceiver.getNearestProcessorDeltaZ());
         SmartDashboard.putNumber(
             "processor delta theta (deg)",
             Math.toDegrees(Math.atan2(
