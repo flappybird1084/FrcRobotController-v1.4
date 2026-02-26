@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import frc.robot.subsystems.AprilTags;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 
 public class Telemetry {
@@ -180,6 +181,12 @@ public class Telemetry {
             m_moduleDirections[i].setAngle(state.ModuleStates[i].angle);
             m_moduleSpeeds[i].setLength(state.ModuleStates[i].speedMetersPerSecond / (2 * MaxSpeed));
         }
+
+        // Intake telemetry
+        SmartDashboard.putNumber("intake pivot target", Intake.targetPivotPosition);
+        SmartDashboard.putNumber("intake pivot position", Intake.currentPivotPosition);
+        SmartDashboard.putNumber("intake pivot power", Intake.pivotPower);
+        SmartDashboard.putNumber("intake roller power", Intake.intakePowerTelemetry);
 
         // SmartDashboard.putNumber("elevator1 position", RobotContainer.elevatorSubsystem.getElevatorPosition());
     }

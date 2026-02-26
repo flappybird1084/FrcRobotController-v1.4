@@ -26,6 +26,7 @@ import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Coral;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Intake;
 
 public class RobotContainer {
     public double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -37,6 +38,7 @@ public class RobotContainer {
     // public static Elevator elevatorSubsystem;
     public static Coral coralSubsystem;
     public static Shooter shooterSubsystem;
+    public static Intake intakeSubsystem;
     
     public static final int PigeonID = 15;
     public static final Pigeon2 imu = new Pigeon2(RobotContainer.PigeonID);
@@ -53,6 +55,7 @@ public class RobotContainer {
     public RobotContainer() {
         driveSubsystem = new Drive(drivetrain, joystick);
         shooterSubsystem = new Shooter(coJoystick);
+        intakeSubsystem = new Intake(coJoystick);
         // elevatorSubsystem = new Elevator(coJoystick);
         // *** coralSubsystem = new Coral(coJoystick);
         udpTelemetryReceiver.start();
@@ -71,6 +74,7 @@ public class RobotContainer {
         // elevatorSubsystem.setDefaultCommand(elevatorSubsystem.getDefaultCommand());
         // *** coralSubsystem.setDefaultCommand(coralSubsystem.getDefaultCommand());
         shooterSubsystem.setDefaultCommand(shooterSubsystem.getDefaultCommand());
+        intakeSubsystem.setDefaultCommand(intakeSubsystem.getDefaultCommand());
 
         // drivetrain.setDefaultCommand(
         //     // Drivetrain will execute this command periodically
@@ -132,6 +136,20 @@ public class RobotContainer {
         .andThen(new InstantCommand(()->
             {driveSubsystem.resetTargetAngle(0);}
         ))
+        );
+
+        // Intake: B = intake forward, A = intake reverse (co-joystick)
+        coJoystick.b().whileTrue(
+            new InstantCommand(() -> intakeSubsystem.setIntakePower(0.5), intakeSubsystem)
+        );
+        coJoystick.b().onFalse(
+            new InstantCommand(() -> intakeSubsystem.stopIntake(), intakeSubsystem)
+        );
+        coJoystick.a().whileTrue(
+            new InstantCommand(() -> intakeSubsystem.setIntakePower(-0.5), intakeSubsystem)
+        );
+        coJoystick.a().onFalse(
+            new InstantCommand(() -> intakeSubsystem.stopIntake(), intakeSubsystem)
         );
 
         drivetrain.registerTelemetry(logger::telemeterize);
