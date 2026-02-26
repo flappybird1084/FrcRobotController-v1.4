@@ -124,8 +124,7 @@ public class Drive extends SubsystemBase {
         if (yawError == null) {
             return;
         }
-        // targetAngle = Constants.imu.getYaw().getValueAsDouble()
-        targetAngle = targetAngle
+        targetAngle = Constants.imu.getYaw().getValueAsDouble()
             + yawError.getDegrees()
             + Constants.cameraFieldRotation.getDegrees();
     }

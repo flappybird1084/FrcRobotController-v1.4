@@ -31,6 +31,12 @@ public final class AprilTags {
     private static final Pattern Z_PATTERN = Pattern.compile("\"z\"\\s*:\\s*(" + NUMBER_REGEX + ")");
     private static final Pattern ROT_PATTERN = Pattern.compile("\"rot\"\\s*:\\s*\\[([^\\]]*)\\]");
 
+    // Camera frame (vision): X right, Y down, Z forward.
+    // Robot frame (WPILib): X forward, Y left, Z up.
+    // This rotation maps camera-frame vectors into robot-frame vectors.
+    private static final Rotation3d CAMERA_TO_ROBOT_ROT =
+        new Rotation3d(new Quaternion(0.5, -0.5, 0.5, -0.5));
+
     // Welded Perimeter coordinates from the provided table (inches, Z-rotation degrees).
     private static final Map<Integer, Pose3d> TAG_POSES = Map.ofEntries(
         Map.entry(1, poseInches(467.64, 292.31, 35.00, 180)),
@@ -83,10 +89,10 @@ public final class AprilTags {
          * Create a detection with tag ID, camera-to-tag translation, and rotation.
          *
          * @param id tag ID
-         * @param xMeters camera-to-tag X in meters
-         * @param yMeters camera-to-tag Y in meters
-         * @param zMeters camera-to-tag Z in meters
-         * @param rotation camera-to-tag rotation
+         * @param xMeters camera-to-tag X in meters (robot frame)
+         * @param yMeters camera-to-tag Y in meters (robot frame)
+         * @param zMeters camera-to-tag Z in meters (robot frame)
+         * @param rotation camera-to-tag rotation (robot frame)
          */
         public AprilTagMeasurement(int id, double xMeters, double yMeters, double zMeters, Rotation3d rotation) {
             this.id = id;
@@ -163,8 +169,19 @@ public final class AprilTags {
             double z = extractDouble(Z_PATTERN, obj, "z");
             double[] rot = extractRotation(obj);
             // UDP provides quaternion as w,x,y,z.
-            Rotation3d rotation = new Rotation3d(new Quaternion(rot[0], rot[1], rot[2], rot[3]));
-            measurements.add(new AprilTagMeasurement(id, x, y, z, rotation));
+            Rotation3d cameraToTagRot = new Rotation3d(new Quaternion(rot[0], rot[1], rot[2], rot[3]));
+            Translation3d cameraToTagTrans = new Translation3d(x, y, z);
+
+            Translation3d robotToTagTrans = cameraToRobotTranslation(cameraToTagTrans);
+            Rotation3d robotToTagRot = cameraToRobotRotation(cameraToTagRot);
+
+            measurements.add(new AprilTagMeasurement(
+                id,
+                robotToTagTrans.getX(),
+                robotToTagTrans.getY(),
+                robotToTagTrans.getZ(),
+                robotToTagRot
+            ));
         }
         return measurements;
     }
@@ -511,5 +528,18 @@ public final class AprilTags {
             rot[i] = Double.parseDouble(parts[i].trim());
         }
         return rot;
+    }
+
+    private static Translation3d cameraToRobotTranslation(Translation3d cameraTranslation) {
+        return new Translation3d(
+            cameraTranslation.getZ(),
+            -cameraTranslation.getX(),
+            -cameraTranslation.getY()
+        );
+    }
+
+    private static Rotation3d cameraToRobotRotation(Rotation3d cameraRotation) {
+        Rotation3d robotToCamera = new Rotation3d(CAMERA_TO_ROBOT_ROT.getQuaternion().inverse());
+        return CAMERA_TO_ROBOT_ROT.rotateBy(cameraRotation).rotateBy(robotToCamera);
     }
 }
