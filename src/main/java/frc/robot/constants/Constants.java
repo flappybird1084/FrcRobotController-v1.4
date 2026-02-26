@@ -20,5 +20,5 @@ public class Constants {
     // Camera-to-robot transform in robot frame (meters) and camera yaw offset in field frame.
     public static final Translation3d cameraToRobotOffset = new Translation3d(0.0, 0.0, 0.0);
     public static final Rotation2d cameraFieldRotation = new Rotation2d(0.0);
-    public static final List<Double> processorRotateAngleLimitDeg = List.of(-75.0, 75.0);
+    public static final List<Double> processorRotateAngleLimitDeg = List.of(-30.0, 30.0);
 }
