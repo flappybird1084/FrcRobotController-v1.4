@@ -124,9 +124,11 @@ public class Telemetry {
         SmartDashboard.putNumber("target angle", RobotContainer.driveSubsystem.targetAngle);
         SmartDashboard.putNumber("joystick x", RobotContainer.joystick.getRightX());
         SmartDashboard.putNumber("left trigger", RobotContainer.joystick.getLeftTriggerAxis());
-        SmartDashboard.putNumber("target shooter rpm", Shooter.targetRpm);
-        SmartDashboard.putNumber("current shooter rpm", Shooter.currentRpm);
-        SmartDashboard.putNumber("shooter power", Shooter.shooterPower);
+        if (RobotContainer.shooterSubsystem != null) {
+            SmartDashboard.putNumber("target shooter rpm", RobotContainer.shooterSubsystem.getTargetRpm());
+            SmartDashboard.putNumber("current shooter rpm", RobotContainer.shooterSubsystem.getCurrentRpm());
+            SmartDashboard.putNumber("shooter power", RobotContainer.shooterSubsystem.getShooterPower());
+        }
         SmartDashboard.putString("udp last packet", udpLastPacket.get(""));
         SmartDashboard.putNumber("udp last timestamp", udpLastPacketTimestamp.get(0.0));
         SmartDashboard.putNumber("april tags detected", AprilTags.getDetectedCount());
