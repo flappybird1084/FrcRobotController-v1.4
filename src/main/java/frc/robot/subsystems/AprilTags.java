@@ -176,6 +176,7 @@ public final class AprilTags {
      * @param tagB second detected tag measurement
      * @return delta pose (actual minus current), or zero pose if unavailable
      */
+    @Deprecated
     public static Pose2d getRobotOffset(AprilTagMeasurement tagA, AprilTagMeasurement tagB) {
         return getRobotOffset(tagA, tagB, new Translation3d());
     }
@@ -245,6 +246,7 @@ public final class AprilTags {
      * @param cameraToRobotOffset camera-to-robot translation in robot frame
      * @return delta pose (actual minus current), or zero pose if unavailable
      */
+    @Deprecated
     public static Pose2d getRobotOffset(
         AprilTagMeasurement tagA,
         AprilTagMeasurement tagB,
@@ -272,6 +274,7 @@ public final class AprilTags {
      * @param cameraToRobotOffset camera-to-robot translation in robot frame
      * @return robot pose if both tags are known
      */
+    @Deprecated
     public static Optional<Pose2d> getRobotPose(
         AprilTagMeasurement tagA,
         AprilTagMeasurement tagB,
@@ -308,6 +311,7 @@ public final class AprilTags {
         ));
     }
 
+    @Deprecated
     public static Optional<Translation2d> getNearestProcessorDelta(
         AprilTagMeasurement tagA,
         AprilTagMeasurement tagB,
@@ -338,6 +342,7 @@ public final class AprilTags {
      * @param currentPose drivetrain pose used to choose triangulation solution
      * @return robot pose if both tags are known
      */
+    @Deprecated
     private static Optional<Pose2d> getRobotPose(
         AprilTagMeasurement tagA,
         AprilTagMeasurement tagB,

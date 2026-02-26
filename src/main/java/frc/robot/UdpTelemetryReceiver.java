@@ -125,21 +125,21 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                         Translation3d cameraToRobotOffset = Constants.cameraToRobotOffset;
                         AprilTags.AprilTagMeasurement tagA = null;
                         AprilTags.AprilTagMeasurement tagB = null;
+                        double nearestTagDist = Double.POSITIVE_INFINITY;
                         AprilTags.AprilTagMeasurement nearestProcessor = null;
                         double nearestProcessorDist = Double.POSITIVE_INFINITY;
                         for (var tag : tags) {
                             if (AprilTags.getPose(tag.id).isPresent()) {
-                                if (tagA == null) {
+                                double dist = Math.hypot(tag.translation.getX(), tag.translation.getZ());
+                                if (dist < nearestTagDist) {
+                                    nearestTagDist = dist;
                                     tagA = tag;
-                                } else {
-                                    tagB = tag;
-                                    break;
                                 }
                             }
                         }
                         for (var tag : tags) {
                             if (AprilTags.isProcessorTag(tag.id)) {
-                                double dist = Math.hypot(tag.translation.getX(), tag.translation.getY());
+                                double dist = Math.hypot(tag.translation.getX(), tag.translation.getZ());
                                 if (dist < nearestProcessorDist) {
                                     nearestProcessorDist = dist;
                                     nearestProcessor = tag;
@@ -147,14 +147,7 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                             }
                         }
 
-                        if (tagA != null && tagB != null) {
-                            robotOffset = AprilTags.getRobotOffset(tagA, tagB, cameraToRobotOffset);
-                            robotPose = AprilTags.getRobotPose(tagA, tagB, cameraToRobotOffset).orElse(new Pose2d());
-                            processorDelta = AprilTags
-                                .getNearestProcessorDelta(tagA, tagB, cameraToRobotOffset)
-                                .orElse(new Translation2d());
-                            singleTagTranslation = new Translation3d();
-                        } else if (tagA != null) {
+                        if (tagA != null) {
                             robotOffset = AprilTags.getRobotOffsetSingleTag(tagA, cameraToRobotOffset);
                             robotPose = AprilTags.getRobotPoseSingleTag(tagA, cameraToRobotOffset).orElse(new Pose2d());
                             processorDelta = AprilTags
