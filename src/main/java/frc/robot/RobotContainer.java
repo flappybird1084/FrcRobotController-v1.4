@@ -100,7 +100,9 @@ public class RobotContainer {
                 //     && UdpTelemetryReceiver.getSecondsSinceLastTag() > 0.4) {
                 //     return;
                 // }
-                if (UdpTelemetryReceiver.isProcessorTagDetected() && udpTelemetryReceiver.getSecondsSinceLastTag() < 0.4) {
+                if (UdpTelemetryReceiver.isProcessorTagDetected()
+                    && UdpTelemetryReceiver.isProcessorYawValid()
+                    && udpTelemetryReceiver.getSecondsSinceLastTag() < 0.4) {
                     driveSubsystem.aimAtTag(UdpTelemetryReceiver.getProcessorYawError());
                 } 
                 // else {
