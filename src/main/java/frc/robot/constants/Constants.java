@@ -30,4 +30,23 @@ public class Constants {
     // Flat offset added to the scaled distance (meters).
     // Accounts for the physical gap between the camera and the shooter exit point.
     public static final double shooterDistanceBias = 0.5;
+
+    public static final int blueShooterMotorID = 21;
+    public static final int greenShooterMotorID = 22;
+
+    public static final int shooterFeederMotor1ID = 23;
+    public static final int shooterFeederMotor2ID = 24;
+
+    // Shooter flywheel tuning
+    public static final double shooterMaxRpm = 5000.0;
+    public static final double shooterMaxRps = shooterMaxRpm / 60.0;
+    public static final double shooterJoystickDeadband = 0.05;
+
+    // Slot 0 PID gains for TalonFX onboard velocity control (1 kHz loop).
+    // kV = 12V / shooterMaxRps — voltage per RPS at steady state. Tune with SysId.
+    // Start kI and kD at zero; only add if steady-state error or oscillation persists.
+    public static final double shooterKp = 0.11;
+    public static final double shooterKi = 0.0;
+    public static final double shooterKd = 0.0;
+    public static final double shooterKv = 12.0 / shooterMaxRps;
 }
