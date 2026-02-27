@@ -23,9 +23,9 @@ import frc.robot.constants.Constants;
 import frc.robot.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive;
-import frc.robot.subsystems.Elevator;
-import frc.robot.subsystems.Coral;
-import frc.robot.subsystems.Shooter;
+// import frc.robot.subsystems.Elevator;
+// import frc.robot.subsystems.Coral;
+// import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
     public double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -35,8 +35,8 @@ public class RobotContainer {
 
     public static Drive driveSubsystem;
     // public static Elevator elevatorSubsystem;
-    public static Coral coralSubsystem;
-    public static Shooter shooterSubsystem;
+    // public static Coral coralSubsystem;
+    // public static Shooter shooterSubsystem;
     
     public static final int PigeonID = 15;
     public static final Pigeon2 imu = new Pigeon2(RobotContainer.PigeonID);
@@ -52,7 +52,7 @@ public class RobotContainer {
 
     public RobotContainer() {
         driveSubsystem = new Drive(drivetrain, joystick);
-        shooterSubsystem = new Shooter(coJoystick);
+        // shooterSubsystem = new Shooter(coJoystick);
         // elevatorSubsystem = new Elevator(coJoystick);
         // *** coralSubsystem = new Coral(coJoystick);
         udpTelemetryReceiver.start();
@@ -70,7 +70,7 @@ public class RobotContainer {
         driveSubsystem.useDefaultCommand();
         // elevatorSubsystem.setDefaultCommand(elevatorSubsystem.getDefaultCommand());
         // *** coralSubsystem.setDefaultCommand(coralSubsystem.getDefaultCommand());
-        shooterSubsystem.setDefaultCommand(shooterSubsystem.getDefaultCommand());
+        // shooterSubsystem.setDefaultCommand(shooterSubsystem.getDefaultCommand());
 
         // drivetrain.setDefaultCommand(
         //     // Drivetrain will execute this command periodically
@@ -93,6 +93,26 @@ public class RobotContainer {
         joystick.b().whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
         ));
+
+        joystick.rightBumper().onTrue(
+            Commands.runOnce(() -> {
+                // if (joystick.getRightTriggerAxis() > 0.5
+                //     && UdpTelemetryReceiver.getSecondsSinceLastTag() > 0.4) {
+                //     return;
+                // }
+                if (UdpTelemetryReceiver.isProcessorTagDetected()
+                    && UdpTelemetryReceiver.isProcessorYawValid()
+                    && udpTelemetryReceiver.getSecondsSinceLastTag() < 0.4) {
+                    driveSubsystem.aimAtTag(UdpTelemetryReceiver.getProcessorYawError());
+                } 
+                // else {
+                //     driveSubsystem.setAimAtTagEnabled(false);
+                // }
+            }, driveSubsystem)
+        );
+        joystick.rightBumper().onFalse(
+            new InstantCommand(() -> driveSubsystem.setAimAtTagEnabled(false), driveSubsystem)
+        );
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.

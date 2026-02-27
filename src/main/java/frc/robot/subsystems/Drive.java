@@ -36,6 +36,7 @@ public class Drive extends SubsystemBase {
     public static double kP; // 3.5
     public static double kI; // 0
     public static double kD; // 0.15
+    private boolean aimAtTag;
 
 
     public Drive(CommandSwerveDrivetrain x, CommandXboxController joystick)
@@ -75,8 +76,15 @@ public class Drive extends SubsystemBase {
     public void periodic(){
         double gyroAngle = Constants.imu.getYaw().getValueAsDouble();
 
+        if (aimAtTag) {
+            kP = 3.0;
+            kI = 0.0001;
+            kD = 0.15;
+            return;
+        }
+
         if(Math.abs(joystick.getRightX()) >= 0.08) {
-            targetAngle += joystick.getRightX()*4;
+            targetAngle += -joystick.getRightX()*4;
             kP = 3.0;
             kI = 0.0001;
             kD = 0.15;
@@ -98,7 +106,7 @@ public class Drive extends SubsystemBase {
         return drivetrain.applyRequest(() ->
                  drive.withVelocityX(-joystick.getLeftY() * MaxSpeed * scaling) // Drive forward with negative Y (forward)
                     .withVelocityY(-joystick.getLeftX() * MaxSpeed * scaling) // Drive left with negative X (left)
-                    .withTargetDirection(new Rotation2d(-Math.toRadians(targetAngle))) // Drive counterclockwise with negative X (left)
+                    .withTargetDirection(new Rotation2d(Math.toRadians(targetAngle))) // Drive counterclockwise with negative X (left)
                     .withHeadingPID(kP, kI, kD)
                     );
     }
@@ -111,6 +119,21 @@ public class Drive extends SubsystemBase {
         targetAngle = angle;
     }
 
+    public void aimAtTag(Rotation2d yawError) {
+        aimAtTag = true;
+        if (yawError == null) {
+            return;
+        }
+        // targetAngle = Constants.imu.getYaw().getValueAsDouble()
+        targetAngle = targetAngle
+            + yawError.getDegrees()
+            + Constants.cameraFieldRotation.getDegrees();
+    }
+
+    public void setAimAtTagEnabled(boolean enabled) {
+        aimAtTag = enabled;
+    }
+
     public Pose2d getPose() {
         return drivetrain.getState().Pose;
     }
@@ -121,7 +144,7 @@ public class Drive extends SubsystemBase {
     }
 
     public void resetFacingAngle() {
-        targetAngle = Math.toRadians(Constants.imu.getYaw().getValueAsDouble());
+        targetAngle = Constants.imu.getYaw().getValueAsDouble();
     }
 
     public void resetPose(Pose2d pose) {

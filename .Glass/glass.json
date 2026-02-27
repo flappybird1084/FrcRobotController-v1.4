@@ -43,6 +43,6 @@
   },
   "NetworkTables Settings": {
     "mode": "Client (NT4)",
-    "serverTeam": "localhost"
+    "serverTeam": "10.102.52.2"
   }
 }
