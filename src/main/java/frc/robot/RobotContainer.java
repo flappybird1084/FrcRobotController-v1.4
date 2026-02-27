@@ -38,8 +38,7 @@ public class RobotContainer {
     // public static Coral coralSubsystem;
     public static Shooter shooterSubsystem;
     
-    public static final int PigeonID = 15;
-    public static final Pigeon2 imu = new Pigeon2(RobotContainer.PigeonID);
+    public static final Pigeon2 imu = new Pigeon2(Constants.pigeonID);
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
     private final UdpTelemetryReceiver udpTelemetryReceiver = new UdpTelemetryReceiver(Constants.udpTelemetryPort);
