@@ -11,26 +11,15 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.constants.Constants;
 import frc.robot.subsystems.AprilTags;
 
 public final class UdpTelemetryReceiver implements AutoCloseable {
-    public static volatile Pose2d robotOffset = new Pose2d();
-    public static volatile Pose2d robotPose = new Pose2d();
-    public static volatile Translation2d processorDelta = new Translation2d();
-    public static volatile Translation2d nearestProcessorDelta = new Translation2d();
-    public static volatile double nearestProcessorDeltaZ;
-    public static volatile Pose2d processorTagOffset = new Pose2d();
     public static volatile Rotation2d processorYawError = new Rotation2d();
     public static volatile Rotation2d processorRotateAngle = new Rotation2d();
     public static volatile boolean processorTagDetected;
     public static volatile boolean processorYawValid;
-    public static volatile Translation3d singleTagTranslation = new Translation3d();
     public static volatile double secondsSinceLastTag = Double.POSITIVE_INFINITY;
     private static volatile double lastTagTimestamp = -1.0;
 
@@ -53,22 +42,6 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
         this.lastPacketTimestampPublisher = table.getDoubleTopic("LastPacketTimestamp").publish();
     }
 
-    public static Pose2d getRobotOffset() {
-        return robotOffset;
-    }
-
-    public static Pose2d getProcessorTagOffset() {
-        return processorTagOffset;
-    }
-
-    public static Translation2d getNearestProcessorDelta() {
-        return nearestProcessorDelta;
-    }
-
-    public static double getNearestProcessorDeltaZ() {
-        return nearestProcessorDeltaZ;
-    }
-
     public static Rotation2d getProcessorYawError() {
         return processorYawError;
     }
@@ -83,10 +56,6 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
 
     public static boolean isProcessorTagDetected() {
         return processorTagDetected;
-    }
-
-    public static Translation3d getSingleTagTranslation() {
-        return singleTagTranslation;
     }
 
     public static double getSecondsSinceLastTag() {
@@ -127,21 +96,8 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                     AprilTags.setDetectedCount(tags.size());
                     if (!tags.isEmpty()) {
                         lastTagTimestamp = now;
-                        Translation3d cameraToRobotOffset = Constants.cameraToRobotOffset;
-                        AprilTags.AprilTagMeasurement tagA = null;
-                        AprilTags.AprilTagMeasurement tagB = null;
-                        double nearestTagDist = Double.POSITIVE_INFINITY;
                         AprilTags.AprilTagMeasurement nearestProcessor = null;
                         double nearestProcessorDist = Double.POSITIVE_INFINITY;
-                        for (var tag : tags) {
-                            if (AprilTags.getPose(tag.id).isPresent()) {
-                                double dist = Math.hypot(tag.translation.getX(), tag.translation.getZ());
-                                if (dist < nearestTagDist) {
-                                    nearestTagDist = dist;
-                                    tagA = tag;
-                                }
-                            }
-                        }
                         for (var tag : tags) {
                             if (AprilTags.isProcessorTag(tag.id)) {
                                 double dist = Math.hypot(tag.translation.getX(), tag.translation.getZ());
@@ -152,64 +108,30 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                             }
                         }
 
-                        if (tagA != null) {
-                            robotOffset = AprilTags.getRobotOffsetSingleTag(tagA, cameraToRobotOffset);
-                            robotPose = AprilTags.getRobotPoseSingleTag(tagA, cameraToRobotOffset).orElse(new Pose2d());
-                            processorDelta = AprilTags
-                                .getNearestProcessorDeltaSingleTag(tagA, cameraToRobotOffset)
-                                .orElse(new Translation2d());
-                            singleTagTranslation = tagA.translation;
-                        } else {
-                            robotOffset = new Pose2d();
-                            robotPose = new Pose2d();
-                            processorDelta = new Translation2d();
-                            singleTagTranslation = new Translation3d();
-                        }
-
                         if (nearestProcessor != null) {
                             processorTagDetected = true;
-                            processorTagOffset = computeProcessorTagOffset(nearestProcessor, null, cameraToRobotOffset);
-                            nearestProcessorDelta = computeNearestProcessorDelta(nearestProcessor, cameraToRobotOffset);
-                            nearestProcessorDeltaZ = computeNearestProcessorDeltaZ(nearestProcessor, cameraToRobotOffset);
                             Rotation2d rotateAngle = computeProcessorRotateAngle(nearestProcessor, null);
                             processorRotateAngle = rotateAngle;
                             processorYawValid = isProcessorRotateAngleWithinLimit(rotateAngle);
                             processorYawError = processorYawValid ? processorRotateAngle : new Rotation2d();
                         } else {
                             processorTagDetected = false;
-                            processorTagOffset = new Pose2d();
                             processorYawError = new Rotation2d();
                             processorRotateAngle = new Rotation2d();
                             processorYawValid = false;
-                            nearestProcessorDelta = new Translation2d();
-                            nearestProcessorDeltaZ = 0.0;
                         }
                     } else {
-                        robotOffset = new Pose2d();
-                        robotPose = new Pose2d();
-                        processorDelta = new Translation2d();
                         processorTagDetected = false;
-                        processorTagOffset = new Pose2d();
                         processorYawError = new Rotation2d();
                         processorRotateAngle = new Rotation2d();
                         processorYawValid = false;
-                        nearestProcessorDelta = new Translation2d();
-                        nearestProcessorDeltaZ = 0.0;
-                        singleTagTranslation = new Translation3d();
                     }
                 } catch (RuntimeException ex) {
                     AprilTags.setDetectedCount(0);
-                    robotOffset = new Pose2d();
-                    robotPose = new Pose2d();
-                    processorDelta = new Translation2d();
                     processorTagDetected = false;
-                    processorTagOffset = new Pose2d();
                     processorYawError = new Rotation2d();
                     processorRotateAngle = new Rotation2d();
                     processorYawValid = false;
-                    nearestProcessorDelta = new Translation2d();
-                    nearestProcessorDeltaZ = 0.0;
-                    singleTagTranslation = new Translation3d();
                 } finally {
                     updateSecondsSinceLastTag(now);
                 }
@@ -227,62 +149,6 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
         if (socket != null) {
             socket.close();
         }
-    }
-
-    private static Pose2d computeProcessorTagOffset(
-        AprilTags.AprilTagMeasurement tagA,
-        AprilTags.AprilTagMeasurement tagB,
-        Translation3d cameraToRobotOffset
-    ) {
-        var robotPoseOpt = tagB == null
-            ? AprilTags.getRobotPoseSingleTag(tagA, cameraToRobotOffset)
-            : AprilTags.getRobotPose(tagA, tagB, cameraToRobotOffset);
-        if (robotPoseOpt.isEmpty()) {
-            return new Pose2d();
-        }
-        Pose2d robotPose = robotPoseOpt.get();
-
-        AprilTags.AprilTagMeasurement targetTag = tagA;
-        if (tagB != null) {
-            var poseA = AprilTags.getPose(tagA.id);
-            var poseB = AprilTags.getPose(tagB.id);
-            if (poseA.isPresent() && poseB.isPresent()) {
-                Translation2d a = new Translation2d(poseA.get().getX(), poseA.get().getY());
-                Translation2d b = new Translation2d(poseB.get().getX(), poseB.get().getY());
-                double distA = robotPose.getTranslation().getDistance(a);
-                double distB = robotPose.getTranslation().getDistance(b);
-                targetTag = distB < distA ? tagB : tagA;
-            } else if (poseA.isEmpty() && poseB.isPresent()) {
-                targetTag = tagB;
-            }
-        }
-
-        var targetPoseOpt = AprilTags.getPose(targetTag.id);
-        if (targetPoseOpt.isEmpty()) {
-            return new Pose2d();
-        }
-        Pose3d targetPose = targetPoseOpt.get();
-        return new Pose2d(
-            targetPose.getX() - robotPose.getX(),
-            targetPose.getY() - robotPose.getY(),
-            new Rotation2d()
-        );
-    }
-
-    private static Translation2d computeNearestProcessorDelta(
-        AprilTags.AprilTagMeasurement tag,
-        Translation3d cameraToRobotOffset
-    ) {
-        Translation3d robotToTag = tag.translation.minus(cameraToRobotOffset);
-        return new Translation2d(robotToTag.getX(), robotToTag.getY());
-    }
-
-    private static double computeNearestProcessorDeltaZ(
-        AprilTags.AprilTagMeasurement tag,
-        Translation3d cameraToRobotOffset
-    ) {
-        Translation3d robotToTag = tag.translation.minus(cameraToRobotOffset);
-        return robotToTag.getZ();
     }
 
     private static Rotation2d computeProcessorRotateAngle(

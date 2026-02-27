@@ -131,25 +131,11 @@ public class Telemetry {
         SmartDashboard.putNumber("udp last timestamp", udpLastPacketTimestamp.get(0.0));
         SmartDashboard.putNumber("april tags detected", AprilTags.getDetectedCount());
         SmartDashboard.putNumber("seconds since last tag", UdpTelemetryReceiver.getSecondsSinceLastTag());
-        SmartDashboard.putNumber("single-tag robot offset x", UdpTelemetryReceiver.getSingleTagTranslation().getX());
-        SmartDashboard.putNumber("single-tag robot offset z", UdpTelemetryReceiver.getSingleTagTranslation().getZ());
+        SmartDashboard.putBoolean("processor tag detected", UdpTelemetryReceiver.isProcessorTagDetected());
+        SmartDashboard.putBoolean("processor yaw valid", UdpTelemetryReceiver.isProcessorYawValid());
         SmartDashboard.putNumber(
-            "single-tag robot offset theta (deg)",
-            UdpTelemetryReceiver.robotOffset.getRotation().getDegrees()
-        );
-        SmartDashboard.putNumber("vision robot pose x", UdpTelemetryReceiver.robotPose.getX());
-        SmartDashboard.putNumber("vision robot pose y", UdpTelemetryReceiver.robotPose.getY());
-        SmartDashboard.putNumber("processor delta x", UdpTelemetryReceiver.processorDelta.getX());
-        SmartDashboard.putNumber("processor delta y", UdpTelemetryReceiver.processorDelta.getY());
-        SmartDashboard.putNumber("nearest processor apriltag delta x", UdpTelemetryReceiver.nearestProcessorDelta.getX());
-        SmartDashboard.putNumber("nearest processor apriltag delta y", UdpTelemetryReceiver.nearestProcessorDelta.getY());
-        SmartDashboard.putNumber("nearest processor apriltag delta z", UdpTelemetryReceiver.getNearestProcessorDeltaZ());
-        SmartDashboard.putNumber(
-            "processor delta theta (deg)",
-            Math.toDegrees(Math.atan2(
-                UdpTelemetryReceiver.processorDelta.getY(),
-                UdpTelemetryReceiver.processorDelta.getX()
-            )) + UdpTelemetryReceiver.robotOffset.getRotation().getDegrees()
+            "processor yaw error (deg)",
+            UdpTelemetryReceiver.getProcessorYawError().getDegrees()
         );
         SmartDashboard.putNumber(
             "processor rotate angle",
