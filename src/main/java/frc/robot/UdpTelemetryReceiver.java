@@ -110,7 +110,7 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
 
                         if (nearestProcessor != null) {
                             processorTagDetected = true;
-                            Rotation2d rotateAngle = computeProcessorRotateAngle(nearestProcessor, null);
+                            Rotation2d rotateAngle = computeProcessorRotateAngle(nearestProcessor);
                             processorRotateAngle = rotateAngle;
                             processorYawValid = isProcessorRotateAngleWithinLimit(rotateAngle);
                             processorYawError = processorYawValid ? processorRotateAngle : new Rotation2d();
@@ -151,19 +151,10 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
         }
     }
 
-    private static Rotation2d computeProcessorRotateAngle(
-        AprilTags.AprilTagMeasurement tagA,
-        AprilTags.AprilTagMeasurement tagB
-    ) {
-        AprilTags.AprilTagMeasurement targetTag = tagA;
-        if (tagB != null) {
-            double distA = Math.hypot(tagA.translation.getX(), tagA.translation.getY());
-            double distB = Math.hypot(tagB.translation.getX(), tagB.translation.getY());
-            targetTag = distB < distA ? tagB : tagA;
-        }
+    private static Rotation2d computeProcessorRotateAngle(AprilTags.AprilTagMeasurement tag) {
         return new Rotation2d(
-            -Math.atan2(targetTag.translation.getX(), targetTag.translation.getZ())
-                + targetTag.rotation.getZ()
+            -Math.atan2(tag.translation.getX(), tag.translation.getZ())
+                + tag.rotation.getZ()
         );
     }
 
