@@ -1,6 +1,10 @@
 package frc.robot.subsystems;
 
 import java.util.List;
+import java.io.IOException;
+import org.json.simple.parser.ParseException;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Commands;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -156,6 +160,21 @@ public class Drive extends SubsystemBase {
     public void driveRobotRelative(ChassisSpeeds speeds) {
         drivetrain.setControl(autoDrive.withSpeeds(speeds));
     }
+
+    // Autonomous
+    public Command followPath(String pathName) {
+        cancelLastPath();
+        try {
+            PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
+            path.preventFlipping = true;
+            lastPath = AutoBuilder.followPath(path);
+            return lastPath;
+        } catch (IOException | ParseException e) {
+            DriverStation.reportError("Failed to load path: " + pathName, e.getStackTrace());
+            return Commands.none();
+        }
+    }
+
 
     public Command driveToPose(Pose2d endPose){
         Pose2d startPose = getPose();

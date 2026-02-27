@@ -22,7 +22,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import frc.robot.subsystems.AprilTags;
-import frc.robot.subsystems.Shooter;
+// import frc.robot.subsystems.ShooterBasic;
+import frc.robot.subsystems.ShooterPID;
 
 public class Telemetry {
     private final double MaxSpeed;
@@ -124,9 +125,11 @@ public class Telemetry {
         SmartDashboard.putNumber("target angle", RobotContainer.driveSubsystem.targetAngle);
         SmartDashboard.putNumber("joystick x", RobotContainer.joystick.getRightX());
         SmartDashboard.putNumber("left trigger", RobotContainer.joystick.getLeftTriggerAxis());
-        SmartDashboard.putNumber("target shooter rpm", Shooter.targetRpm);
-        SmartDashboard.putNumber("current shooter rpm", Shooter.currentRpm);
-        SmartDashboard.putNumber("shooter power", Shooter.shooterPower);
+        SmartDashboard.putNumber("ShooterTargetRPM", ShooterPID.targetRpm);
+        SmartDashboard.putNumber("ShooterRPM", ShooterPID.currentRpm);
+        SmartDashboard.putNumber("ShooterOutput", ShooterPID.shooterOutput);
+        SmartDashboard.putNumber("ShooterFeederPower", ShooterPID.feederPower);
+        SmartDashboard.putNumber("TagDistanceMeters", UdpTelemetryReceiver.getProcessorDistanceMeters());
         SmartDashboard.putString("udp last packet", udpLastPacket.get(""));
         SmartDashboard.putNumber("udp last timestamp", udpLastPacketTimestamp.get(0.0));
         SmartDashboard.putNumber("april tags detected", AprilTags.getDetectedCount());

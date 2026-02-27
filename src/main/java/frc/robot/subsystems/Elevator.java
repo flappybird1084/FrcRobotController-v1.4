@@ -35,9 +35,6 @@ public class Elevator extends SubsystemBase {
     // Desired target position (in encoder units)
     private static double targetPosition = encoder1.getPosition();
 
-    // Deadband for manual control
-    private static final double MANUAL_DEADBAND = 0.05;
-
     private static double p;
 
     private static double x = 0.3;

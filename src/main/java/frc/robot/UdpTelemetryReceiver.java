@@ -50,6 +50,10 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
         return processorTagOffset;
     }
 
+    public static double getProcessorDistanceMeters() {
+        return processorDelta.getNorm();
+    }
+
     public static boolean isProcessorTagDetected() {
         return processorTagDetected;
     }

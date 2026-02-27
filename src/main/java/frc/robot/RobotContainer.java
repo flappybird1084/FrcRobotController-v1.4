@@ -54,7 +54,7 @@ public class RobotContainer {
         driveSubsystem = new Drive(drivetrain, joystick);
         shooterSubsystem = new Shooter(coJoystick);
         // elevatorSubsystem = new Elevator(coJoystick);
-        // *** coralSubsystem = new Coral(coJoystick);
+        // coralSubsystem = new Coral(coJoystick);
         udpTelemetryReceiver.start();
         configureBindings();
     }
@@ -114,11 +114,13 @@ public class RobotContainer {
         joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
         joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
+        // Should follow smol path.path, but right now, it isn't working
         joystick.x().onTrue(
-                new InstantCommand(() -> {
-                    driveSubsystem.pathRelative(1, 0, Math.toRadians(90)).schedule();
-                }, driveSubsystem
-        ));
+            new InstantCommand(() -> {
+                driveSubsystem.followPath("smol path").schedule();
+            }, driveSubsystem)
+        );
+
 
         joystick.y().onTrue(new InstantCommand(() -> driveSubsystem.resetPose(new Pose2d()), driveSubsystem));
         
@@ -128,6 +130,8 @@ public class RobotContainer {
             {driveSubsystem.resetTargetAngle(0);}
         ))
         );
+
+
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }
