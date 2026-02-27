@@ -19,19 +19,26 @@ public class Shooter extends SubsystemBase {
     private final CommandXboxController joystick;
 
 
-    // Distance (meters, after scale+bias applied) → target RPM.
+    // Distance (meters, after scale+bias applied) → target RPM, one curve per motor.
     // Replace placeholder points with real measured values; interpolation fills in between.
-    private static final InterpolatingDoubleTreeMap RPM_CURVE = new InterpolatingDoubleTreeMap();
+    private static final InterpolatingDoubleTreeMap BLUE_RPM_CURVE  = new InterpolatingDoubleTreeMap();
+    private static final InterpolatingDoubleTreeMap GREEN_RPM_CURVE = new InterpolatingDoubleTreeMap();
     static {
-        RPM_CURVE.put(1.0, 1500.0);
-        RPM_CURVE.put(2.0, 2500.0);
-        RPM_CURVE.put(3.0, 3500.0);
-        RPM_CURVE.put(4.0, 4500.0);
+        BLUE_RPM_CURVE.put(1.0, 1500.0);
+        BLUE_RPM_CURVE.put(2.0, 2500.0);
+        BLUE_RPM_CURVE.put(3.0, 3500.0);
+        BLUE_RPM_CURVE.put(4.0, 4500.0);
+
+        GREEN_RPM_CURVE.put(1.0, 1500.0);
+        GREEN_RPM_CURVE.put(2.0, 2500.0);
+        GREEN_RPM_CURVE.put(3.0, 3500.0);
+        GREEN_RPM_CURVE.put(4.0, 4500.0);
     }
 
-    public static double targetRpm   = 0.0;
-    public static double currentRpm  = 0.0;
-    public static double shooterPower = 0.0;
+    public static double targetRpm      = 0.0;
+    public static double targetGreenRpm = 0.0;
+    public static double currentRpm     = 0.0;
+    public static double shooterPower   = 0.0;
 
     public static final TalonFX blueMotor  = new TalonFX(Constants.blueShooterMotorID);
     public static final TalonFX greenMotor = new TalonFX(Constants.greenShooterMotorID);
@@ -64,11 +71,12 @@ public class Shooter extends SubsystemBase {
         greenMotor.getConfigurator().apply(greenConfig);
     }
 
-    /** Send both flywheel motors to the same velocity. Updates targetRpm for telemetry. */
-    private void setShooterRps(double rps) {
-        blueMotor.setControl(velocityRequest.withVelocity(rps));
-        greenMotor.setControl(velocityRequest.withVelocity(rps));
-        targetRpm = rps * 60.0;
+    /** Send each flywheel motor to its own velocity target. Updates telemetry fields. */
+    private void setShooterRps(double blueRps, double greenRps) {
+        blueMotor.setControl(velocityRequest.withVelocity(blueRps));
+        greenMotor.setControl(velocityRequest.withVelocity(greenRps));
+        targetRpm      = blueRps  * 60.0;
+        targetGreenRpm = greenRps * 60.0;
     }
 
     public static void setFeederPower(double power) {
@@ -81,7 +89,8 @@ public class Shooter extends SubsystemBase {
         return new RunCommand(() -> {
             double input = joystick.getRightY();
             if (Math.abs(input) < Constants.shooterJoystickDeadband) input = 0.0;
-            setShooterRps(input * Constants.shooterMaxRps);
+            double rps = input * Constants.shooterMaxRps;
+            setShooterRps(rps, rps);
         }, this);
     }
 
@@ -93,8 +102,9 @@ public class Shooter extends SubsystemBase {
         return new RunCommand(() -> {
             double dist = UdpTelemetryReceiver.nearestProcessorDistMeters
                         * Constants.shooterDistanceScale + Constants.shooterDistanceBias;
-            double rpm = Double.isFinite(dist) ? RPM_CURVE.get(dist) : 0.0;
-            setShooterRps(rpm / 60.0);
+            double blueRpm  = Double.isFinite(dist) ? BLUE_RPM_CURVE.get(dist)  : 0.0;
+            double greenRpm = Double.isFinite(dist) ? GREEN_RPM_CURVE.get(dist) : 0.0;
+            setShooterRps(blueRpm / 60.0, greenRpm / 60.0);
         }, this);
     }
 
