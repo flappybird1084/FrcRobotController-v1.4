@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.UdpTelemetryReceiver;
 
-public class ShooterPID extends SubsystemBase {
+public class Shooter extends SubsystemBase {
     private final CommandXboxController joystick;
 
     private static final double kP = 0.0002;
@@ -42,7 +42,7 @@ public class ShooterPID extends SubsystemBase {
     public static volatile double feederPower = 0.0;
     public static volatile double shooterOutput = 0.0;
     
-    public ShooterPID(CommandXboxController joystick)
+    public Shooter(CommandXboxController joystick)
     {
         this.joystick=joystick;
     }
