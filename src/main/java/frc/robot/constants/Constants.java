@@ -13,4 +13,10 @@ public class Constants {
     public static final Pigeon2 imu = new Pigeon2(Constants.pigeonID);
 
     public static final int udpTelemetryPort = 5800;
+
+    public static final double shooterMaxRps = 100.0;
+    public static final double shooterKp = 0.11;
+    public static final double shooterKi = 0.0;
+    public static final double shooterKd = 0.0;
+    public static final double shooterKv = 12.0 / shooterMaxRps;
 }

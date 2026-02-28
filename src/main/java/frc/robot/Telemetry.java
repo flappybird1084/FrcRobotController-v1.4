@@ -125,8 +125,10 @@ public class Telemetry {
         SmartDashboard.putNumber("target angle", RobotContainer.driveSubsystem.targetAngle);
         SmartDashboard.putNumber("joystick x", RobotContainer.joystick.getRightX());
         SmartDashboard.putNumber("left trigger", RobotContainer.joystick.getLeftTriggerAxis());
-        SmartDashboard.putNumber("ShooterTargetRPM", Shooter.targetRpm);
-        SmartDashboard.putNumber("ShooterRPM", Shooter.currentRpm);
+        SmartDashboard.putNumber("ShooterTargetBlueRPM", Shooter.targetBlueRpm);
+        SmartDashboard.putNumber("ShooterTargetGreenRPM", Shooter.targetGreenRpm);
+        SmartDashboard.putNumber("ShooterBlueRPM", Shooter.currentBlueRpm);
+        SmartDashboard.putNumber("ShooterGreenRPM", Shooter.currentGreenRpm);
         SmartDashboard.putNumber("ShooterOutput", Shooter.shooterOutput);
         SmartDashboard.putNumber("ShooterFeederPower", Shooter.feederPower);
         SmartDashboard.putNumber("TagDistanceMeters", UdpTelemetryReceiver.getProcessorDistanceMeters());
