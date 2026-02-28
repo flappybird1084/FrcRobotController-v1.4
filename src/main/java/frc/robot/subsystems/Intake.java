@@ -2,10 +2,8 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,7 +28,6 @@ public class Intake extends SubsystemBase {
     // Motors
     private final TalonFX intakeMotor = new TalonFX(27);
     private final TalonFX pivotMotor1 = new TalonFX(28);
-    private final TalonFX pivotMotor2 = new TalonFX(29);
 
     // Telemetry values
     public static double currentPivotPosition = 0.0;
@@ -42,7 +39,6 @@ public class Intake extends SubsystemBase {
 
         // Brake mode so the pivot doesn't fall when power is cut
         pivotMotor1.setNeutralMode(NeutralModeValue.Brake);
-        pivotMotor2.setNeutralMode(NeutralModeValue.Brake);
 
         // Hardware PID gains on motor controller (1kHz loop)
         var slot0Configs = new Slot0Configs();
@@ -58,10 +54,6 @@ public class Intake extends SubsystemBase {
             .withStatorCurrentLimit(60)
             .withStatorCurrentLimitEnable(true);
         pivotMotor1.getConfigurator().apply(currentLimits);
-        pivotMotor2.getConfigurator().apply(currentLimits);
-
-        // Motor 2 follows motor 1 in the opposite direction (hardware-level sync)
-        pivotMotor2.setControl(new Follower(pivotMotor1.getDeviceID(), MotorAlignmentValue.Opposed));
 
         // Initialize target to current position so it doesn't jump on startup
         pivotTargetPosition = pivotMotor1.getPosition().getValueAsDouble();
