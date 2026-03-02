@@ -142,19 +142,11 @@ public class RobotContainer {
         ))
         );
 
-        // Intake: B = intake forward, A = intake reverse (co-joystick)
-        coJoystick.b().whileTrue(
-            new InstantCommand(() -> intakeSubsystem.setIntakePower(0.5), intakeSubsystem)
-        );
-        coJoystick.b().onFalse(
-            new InstantCommand(() -> intakeSubsystem.stopIntake(), intakeSubsystem)
-        );
-        coJoystick.a().whileTrue(
-            new InstantCommand(() -> intakeSubsystem.setIntakePower(-0.5), intakeSubsystem)
-        );
-        coJoystick.a().onFalse(
-            new InstantCommand(() -> intakeSubsystem.stopIntake(), intakeSubsystem)
-        );
+        // Intake: B = intake (pivot pushes down), A = outtake (pivot stays)
+        coJoystick.b().onTrue(new InstantCommand(() -> intakeSubsystem.intake(), intakeSubsystem));
+        coJoystick.b().onFalse(new InstantCommand(() -> intakeSubsystem.stop(), intakeSubsystem));
+        coJoystick.a().onTrue(new InstantCommand(() -> intakeSubsystem.outtake(), intakeSubsystem));
+        coJoystick.a().onFalse(new InstantCommand(() -> intakeSubsystem.stop(), intakeSubsystem));
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }
