@@ -23,8 +23,8 @@ import frc.robot.constants.Constants;
 import frc.robot.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive;
-import frc.robot.subsystems.Elevator;
-import frc.robot.subsystems.Coral;
+// import frc.robot.subsystems.Elevator;
+// import frc.robot.subsystems.Coral;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Intake;
 
@@ -36,12 +36,11 @@ public class RobotContainer {
 
     public static Drive driveSubsystem;
     // public static Elevator elevatorSubsystem;
-    public static Coral coralSubsystem;
+    // public static Coral coralSubsystem;
     public static Shooter shooterSubsystem;
     public static Intake intakeSubsystem;
     
-    public static final int PigeonID = 15;
-    public static final Pigeon2 imu = new Pigeon2(RobotContainer.PigeonID);
+    public static final Pigeon2 imu = new Pigeon2(Constants.pigeonID);
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
     private final UdpTelemetryReceiver udpTelemetryReceiver = new UdpTelemetryReceiver(Constants.udpTelemetryPort);
@@ -76,6 +75,9 @@ public class RobotContainer {
         shooterSubsystem.setDefaultCommand(shooterSubsystem.getDefaultCommand());
         intakeSubsystem.setDefaultCommand(intakeSubsystem.getDefaultCommand());
 
+        // coJoystick right bumper: auto-RPM from AprilTag distance (overrides manual while held)
+        coJoystick.rightBumper().whileTrue(shooterSubsystem.autoRpmFromDistanceCommand());
+
         // drivetrain.setDefaultCommand(
         //     // Drivetrain will execute this command periodically
         //     drivetrain.applyRequest(() ->
@@ -104,7 +106,9 @@ public class RobotContainer {
                 //     && UdpTelemetryReceiver.getSecondsSinceLastTag() > 0.4) {
                 //     return;
                 // }
-                if (UdpTelemetryReceiver.isProcessorTagDetected() && udpTelemetryReceiver.getSecondsSinceLastTag() < 0.4) {
+                if (UdpTelemetryReceiver.isProcessorTagDetected()
+                    && UdpTelemetryReceiver.isProcessorYawValid()
+                    && udpTelemetryReceiver.getSecondsSinceLastTag() < 0.4) {
                     driveSubsystem.aimAtTag(UdpTelemetryReceiver.getProcessorYawError());
                 } 
                 // else {
