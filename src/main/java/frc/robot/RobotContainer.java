@@ -74,6 +74,9 @@ public class RobotContainer {
         // coJoystick right bumper: auto-RPM from AprilTag distance (overrides manual while held)
         coJoystick.rightBumper().whileTrue(shooterSubsystem.autoRpmFromDistanceCommand());
 
+        coJoystick.leftBumper().whileTrue(shooterSubsystem.runFeederMotors(0.5));
+        coJoystick.leftBumper().whileFalse(shooterSubsystem.runFeederMotors(0));
+
         // drivetrain.setDefaultCommand(
         //     // Drivetrain will execute this command periodically
         //     drivetrain.applyRequest(() ->

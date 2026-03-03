@@ -80,8 +80,15 @@ public class Shooter extends SubsystemBase {
     }
 
     public static void setFeederPower(double power) {
+        power *=-1;
         feeder1.set(power);
         feeder2.set(power);
+    }
+
+    public Command runFeederMotors(double power){
+        return new RunCommand(()->{
+            setFeederPower(power);
+        }, this);
     }
 
     /** Manual joystick control — active whenever no other command requires this subsystem. */
