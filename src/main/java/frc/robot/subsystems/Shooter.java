@@ -56,7 +56,7 @@ public class Shooter extends SubsystemBase {
         blueConfig.Slot0.kI = Constants.shooterKi;
         blueConfig.Slot0.kD = Constants.shooterKd;
         blueConfig.Slot0.kV = Constants.shooterKv;
-        shooter1.getConfigurator().apply(blueConfig);
+        bluemotor.getConfigurator().apply(blueConfig);
 
         TalonFXConfiguration greenConfig = new TalonFXConfiguration();
         greenConfig.Slot0.kP = Constants.shooterKp;
@@ -64,19 +64,19 @@ public class Shooter extends SubsystemBase {
         greenConfig.Slot0.kD = Constants.shooterKd;
         greenConfig.Slot0.kV = Constants.shooterKv;
         greenConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        shooter2.getConfigurator().apply(greenConfig);
+        greenmotor.getConfigurator().apply(greenConfig);
     }
 
     // Temporary ids, but i think 23-26 work since Vansh's intake is 27-29
-    public static final TalonFX shooter1 = new TalonFX(23);
-    public static final TalonFX shooter2 = new TalonFX(24);
-    public static final SparkMax feeder1 = new SparkMax(25, MotorType.kBrushless);
-    public static final SparkMax feeder2 = new SparkMax(26, MotorType.kBrushless);
+    public static final TalonFX bluemotor = new TalonFX(21);
+    public static final TalonFX greenmotor = new TalonFX(22);
+    public static final SparkMax feeder1 = new SparkMax(23, MotorType.kBrushless);
+    public static final SparkMax feeder2 = new SparkMax(24, MotorType.kBrushless);
 
 
     private void setShooterRps(double blueRps, double greenRps) {
-        shooter1.setControl(velocityRequest.withVelocity(blueRps));
-        shooter2.setControl(velocityRequest.withVelocity(greenRps));
+        bluemotor.setControl(velocityRequest.withVelocity(blueRps));
+        greenmotor.setControl(velocityRequest.withVelocity(greenRps));
         targetBlueRpm = blueRps * 60.0;
         targetGreenRpm = greenRps * 60.0;
     }
@@ -126,8 +126,8 @@ public class Shooter extends SubsystemBase {
 
     @Override
     public void periodic() {
-        currentBlueRpm = shooter1.getVelocity().getValueAsDouble() * 60.0;
-        currentGreenRpm = shooter2.getVelocity().getValueAsDouble() * 60.0;
-        shooterOutput = shooter1.getDutyCycle().getValueAsDouble();
+        currentBlueRpm = bluemotor.getVelocity().getValueAsDouble() * 60.0;
+        currentGreenRpm = greenmotor.getVelocity().getValueAsDouble() * 60.0;
+        shooterOutput = bluemotor.getDutyCycle().getValueAsDouble();
     }
 }
