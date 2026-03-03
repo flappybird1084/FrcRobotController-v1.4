@@ -23,6 +23,7 @@ import frc.robot.constants.Constants;
 import frc.robot.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.Intake;
 // import frc.robot.subsystems.Elevator;
 // import frc.robot.subsystems.Coral;
 import frc.robot.subsystems.Shooter;
@@ -37,6 +38,7 @@ public class RobotContainer {
     // public static Elevator elevatorSubsystem;
     // public static Coral coralSubsystem;
     public static Shooter shooterSubsystem;
+    public static Intake intakeSubsystem;
     
     public static final Pigeon2 imu = new Pigeon2(Constants.pigeonID);
 
@@ -52,6 +54,7 @@ public class RobotContainer {
     public RobotContainer() {
         driveSubsystem = new Drive(drivetrain, joystick);
         shooterSubsystem = new Shooter(coJoystick);
+        intakeSubsystem = new Intake();
         // elevatorSubsystem = new Elevator(coJoystick);
         // *** coralSubsystem = new Coral(coJoystick);
         udpTelemetryReceiver.start();
@@ -76,6 +79,11 @@ public class RobotContainer {
 
         coJoystick.leftBumper().whileTrue(shooterSubsystem.runFeederMotors(0.5));
         coJoystick.leftBumper().whileFalse(shooterSubsystem.runFeederMotors(0));
+
+        coJoystick.a().whileTrue(intakeSubsystem.runIntake(0.5));
+        coJoystick.b().whileTrue(intakeSubsystem.runIntake(-0.5));
+        coJoystick.a().and(coJoystick.b()).whileFalse(intakeSubsystem.runIntake(0));
+
 
         // drivetrain.setDefaultCommand(
         //     // Drivetrain will execute this command periodically
