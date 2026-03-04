@@ -67,7 +67,7 @@ public class Shooter extends SubsystemBase {
         greenConfig.Slot0.kI = Constants.shooterKi;
         greenConfig.Slot0.kD = Constants.shooterKd;
         greenConfig.Slot0.kV = Constants.shooterKv;
-        greenConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        // greenConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         greenMotor.getConfigurator().apply(greenConfig);
     }
 
@@ -96,10 +96,21 @@ public class Shooter extends SubsystemBase {
         return new RunCommand(() -> {
             double input = joystick.getRightY();
             if (Math.abs(input) < Constants.shooterJoystickDeadband) input = 0.0;
-            double rps = input * Constants.shooterMaxRps;
-            setShooterRps(rps, rps);
+            // Velocity-based default (disabled).
+            // double rps = input * Constants.shooterMaxRps;
+            // setShooterRps(rps, rps);
+            double power = input * 0.35;
+            blueMotor.set(power);
+            greenMotor.set(power);
         }, this);
     }
+
+    // public Command runShooterCommand(double power){
+    //     return new RunCommand(()->{
+    //         blueMotor.set(power);
+    //         greenMotor.set(power);
+    //     }, this);
+    // }
 
     /**
      * Sets RPM from the AprilTag distance curve.
@@ -118,7 +129,9 @@ public class Shooter extends SubsystemBase {
     /** Always runs — only reads sensors and updates telemetry fields, never commands motors. */
     @Override
     public void periodic() {
-        currentRpm   = blueMotor.getVelocity().getValueAsDouble() * 60.0;
-        shooterPower = blueMotor.getDutyCycle().getValueAsDouble();
+        // currentRpm   = blueMotor.getVelocity().getValueAsDouble() * 60.0;
+        // shooterPower = blueMotor.getDutyCycle().getValueAsDouble();
+        blueMotor.set(joystick.getRightY());
+        greenMotor.set(joystick.getRightY());
     }
 }

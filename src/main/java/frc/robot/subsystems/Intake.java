@@ -9,17 +9,21 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 public class Intake extends SubsystemBase {
     // Motors
     private final TalonFX intakeMotor;
     private final TalonFX pivotMotor1;
 
-   
+    private final CommandXboxController joystick;
 
-    public Intake() {
+     // Reusable control request — mutated each loop via withPosition() if we do position control.
+    public Intake(CommandXboxController joystick) {
+        this.joystick = joystick;
         intakeMotor = new TalonFX(26);
         pivotMotor1 = new TalonFX(25);
 
@@ -37,7 +41,7 @@ public class Intake extends SubsystemBase {
     }
 
     public Command runIntake(double power){
-        return new RunCommand(()->{
+        return new InstantCommand(()->{
             setIntakePower(power);
         }, this);
     }
@@ -47,6 +51,13 @@ public class Intake extends SubsystemBase {
             setPivotPower(power);
         }, this);
     }
+
+    @Override
+    public void periodic() {
+        // runIntake(joystick.getLeftTriggerAxis());
+        intakeMotor.set(0.35*(joystick.getLeftTriggerAxis() - joystick.getRightTriggerAxis()));
+        // Telemetry or sensor reading can be added here if needed
+    }   
 
     // @Override
     // public void periodic() {

@@ -54,7 +54,7 @@ public class RobotContainer {
     public RobotContainer() {
         driveSubsystem = new Drive(drivetrain, joystick);
         shooterSubsystem = new Shooter(coJoystick);
-        intakeSubsystem = new Intake();
+        intakeSubsystem = new Intake(coJoystick);
         // elevatorSubsystem = new Elevator(coJoystick);
         // *** coralSubsystem = new Coral(coJoystick);
         udpTelemetryReceiver.start();
@@ -70,9 +70,11 @@ public class RobotContainer {
 
         // drivetrain.setDefaultCommand(driveSubsystem.getDefaultCommand());
         driveSubsystem.useDefaultCommand();
-        // elevatorSubsystem.setDefaultCommand(elevatorSubsystem.getDefaultCommand());
-        // *** coralSubsystem.setDefaultCommand(coralSubsystem.getDefaultCommand());
-        shooterSubsystem.setDefaultCommand(shooterSubsystem.getDefaultCommand());
+
+
+        // shooterSubsystem.setDefaultCommand(shooterSubsystem.getDefaultCommand());
+
+        // coJoystick.y().whileTrue(shooterSubsystem.runShooterCommand(coJoystick.getLeftY()));
 
         // coJoystick right bumper: auto-RPM from AprilTag distance (overrides manual while held)
         coJoystick.rightBumper().whileTrue(shooterSubsystem.autoRpmFromDistanceCommand());
@@ -82,7 +84,6 @@ public class RobotContainer {
 
         coJoystick.a().whileTrue(intakeSubsystem.runIntake(0.5));
         coJoystick.b().whileTrue(intakeSubsystem.runIntake(-0.5));
-        coJoystick.a().and(coJoystick.b()).whileFalse(intakeSubsystem.runIntake(0));
 
 
         // drivetrain.setDefaultCommand(
