@@ -80,10 +80,14 @@ public class RobotContainer {
         coJoystick.rightBumper().whileTrue(shooterSubsystem.autoRpmFromDistanceCommand());
 
         coJoystick.leftBumper().whileTrue(shooterSubsystem.runFeederMotors(0.5));
-        coJoystick.leftBumper().whileFalse(shooterSubsystem.runFeederMotors(0));
+        coJoystick.y().whileTrue(shooterSubsystem.runFeederMotors(-0.5));
+        coJoystick.leftBumper()
+            .or(coJoystick.y())
+            .whileFalse(shooterSubsystem.runFeederMotors(0));
 
-        coJoystick.a().whileTrue(intakeSubsystem.runIntake(0.5));
-        coJoystick.b().whileTrue(intakeSubsystem.runIntake(-0.5));
+
+        coJoystick.a().whileTrue(intakeSubsystem.runIntake(1));
+        coJoystick.b().whileTrue(intakeSubsystem.runIntake(-1));
 
 
         // drivetrain.setDefaultCommand(

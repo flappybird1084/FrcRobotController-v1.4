@@ -55,7 +55,7 @@ public class Intake extends SubsystemBase {
     @Override
     public void periodic() {
         // runIntake(joystick.getLeftTriggerAxis());
-        intakeMotor.set(0.35*(joystick.getLeftTriggerAxis() - joystick.getRightTriggerAxis()));
+        intakeMotor.set(0.7*(joystick.getLeftTriggerAxis() - joystick.getRightTriggerAxis()));
         // Telemetry or sensor reading can be added here if needed
     }   
 

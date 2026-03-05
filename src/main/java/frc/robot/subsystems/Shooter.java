@@ -80,7 +80,7 @@ public class Shooter extends SubsystemBase {
     }
 
     public static void setFeederPower(double power) {
-        power *=-1;
+        power *= -1;
         feeder1.set(power);
         feeder2.set(power);
     }
@@ -131,7 +131,7 @@ public class Shooter extends SubsystemBase {
     public void periodic() {
         // currentRpm   = blueMotor.getVelocity().getValueAsDouble() * 60.0;
         // shooterPower = blueMotor.getDutyCycle().getValueAsDouble();
-        blueMotor.set(joystick.getRightY());
-        greenMotor.set(joystick.getRightY());
+        blueMotor.set(0.85*(joystick.getRightY()));
+        greenMotor.set(0.85*(joystick.getRightY()));
     }
 }
