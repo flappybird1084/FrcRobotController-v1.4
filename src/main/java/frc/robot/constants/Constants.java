@@ -49,4 +49,16 @@ public class Constants {
     public static final double shooterKi = 0.0;
     public static final double shooterKd = 0.0;
     public static final double shooterKv = 12.0 / shooterMaxRps;
+
+    public static final class Intake {
+        public static final double intakePower = 0.5;
+        public static final double pivotDownPower = 0.3;
+
+        public static final int intakeMotorId = 27;
+        public static final int pivotMotorId = 28;
+
+        public static final double pivotStatorCurrentLimit = 60.0;
+
+        private Intake() {}
+    }
 }

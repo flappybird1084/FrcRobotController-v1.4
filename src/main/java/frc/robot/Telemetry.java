@@ -172,8 +172,8 @@ public class Telemetry {
         }
 
         // Intake telemetry
-        SmartDashboard.putNumber("intake pivot target", Intake.targetPivotPosition);
-        SmartDashboard.putNumber("intake pivot position", Intake.currentPivotPosition);
+        //SmartDashboard.putNumber("intake pivot target", Intake.targetPivotPosition); //unused
+        //SmartDashboard.putNumber("intake pivot position", Intake.currentPivotPosition); //unused
         SmartDashboard.putNumber("intake roller power", Intake.intakePowerTelemetry);
 
         // SmartDashboard.putNumber("elevator1 position", RobotContainer.elevatorSubsystem.getElevatorPosition());
