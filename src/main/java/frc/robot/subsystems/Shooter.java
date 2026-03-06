@@ -67,7 +67,6 @@ public class Shooter extends SubsystemBase {
         greenmotor.getConfigurator().apply(greenConfig);
     }
 
-    // Temporary ids, but i think 23-26 work since Vansh's intake is 27-29
     public static final TalonFX bluemotor = new TalonFX(21);
     public static final TalonFX greenmotor = new TalonFX(22);
     public static final SparkMax feeder1 = new SparkMax(23, MotorType.kBrushless);
@@ -99,6 +98,7 @@ public class Shooter extends SubsystemBase {
 
     public Command getDefaultCommand() {
        return Commands.run(() -> {
+            double manualPower = MathUtil.applyDeadband(-joystick.getRightY(), 0.08);
             double newTargetBlueRpm = 0.0;
             double newTargetGreenRpm = 0.0;
             if (joystick.x().getAsBoolean()) {
@@ -114,13 +114,24 @@ public class Shooter extends SubsystemBase {
                 newTargetGreenRpm = CONSTANT_TARGET_RPM;
             }
 
-            if (newTargetBlueRpm == 0.0 && newTargetGreenRpm == 0.0) {
-                setShooterRps(0.0, 0.0);
-                setFeederPower(0.0);
+            if (newTargetBlueRpm > 0.0 || newTargetGreenRpm > 0.0) {
+                setShooterRps(newTargetBlueRpm / 60.0, newTargetGreenRpm / 60.0);
+                setFeederPower(FEEDER_POWER);
                 return;
             }
-            setShooterRps(newTargetBlueRpm / 60.0, newTargetGreenRpm / 60.0);
-            setFeederPower(FEEDER_POWER);
+
+            if (Math.abs(manualPower) > 0.01) {
+                bluemotor.set(manualPower);
+                greenmotor.set(manualPower);
+                shooterOutput = manualPower;
+                targetBlueRpm = 0.0;
+                targetGreenRpm = 0.0;
+                setFeederPower(FEEDER_POWER);
+                return;
+            }
+
+            setShooterRps(0.0, 0.0);
+            setFeederPower(0.0);
        }, this);
     }
 
