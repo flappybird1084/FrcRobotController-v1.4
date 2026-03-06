@@ -86,7 +86,7 @@ public class RobotContainer {
             .whileFalse(shooterSubsystem.runFeederMotors(0));
 
 
-        coJoystick.a().whileTrue(intakeSubsystem.runIntake(1));
+        coJoystick.a().whileTrue(intakeSubsystem.runIntakeWithPivotDown(0.75));
         coJoystick.b().whileTrue(intakeSubsystem.runIntake(-1));
 
 
