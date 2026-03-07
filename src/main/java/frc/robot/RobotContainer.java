@@ -158,6 +158,20 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return Commands.print("No autonomous command configured");
+        final SwerveRequest.FieldCentric autoDrive = new SwerveRequest.FieldCentric();
+
+        return Commands.sequence(
+            Commands.runOnce(() -> drivetrain.resetRotation(drivetrain.getOperatorForwardDirection())),
+            drivetrain.applyRequest(() ->
+                autoDrive.withVelocityX(-0.25 * MaxSpeed)
+                    .withVelocityY(0)
+                    .withRotationalRate(0)
+            ).withTimeout(2),
+            drivetrain.applyRequest(() ->
+                autoDrive.withVelocityX(0)
+                    .withVelocityY(0)
+                    .withRotationalRate(0)
+            ).withTimeout(0.02)
+        );
     }
 }
