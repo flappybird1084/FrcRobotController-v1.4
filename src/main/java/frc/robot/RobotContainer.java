@@ -140,28 +140,25 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-            //     Command talonFXCommand = Autos.exampleAuto(new TalonFX[]{drivetrain.getModule(0).getDriveMotor(), drivetrain.getModule(1).getDriveMotor(),drivetrain.getModule(2).getDriveMotor(), drivetrain.getModule(4).getDriveMotor()});
-    // // For SparkMax
-    // // Command sparkMaxCommand = Autos.exampleAuto(m_exampleDrivetrain.m_SparkMax);
-
-    // return talonFXCommand;
+        final var autoDrive = new SwerveRequest.RobotCentric();
 
         return Commands.sequence(
             Commands.runOnce(() -> {
                 // TODO: This maybe is off by 180?
                 drivetrain.resetRotation(drivetrain.getOperatorForwardDirection());
             }),
-        drivetrain.applyRequest(
-                () ->
-                // TODO: Might be going wrong way
-                    drive.withVelocityX(-0.5*MaxSpeed) // Drive forward with negative Y (forward)
-                        .withVelocityY(0) // Drive left with negative X (left)
-                        .withRotationalRate(0))
-                            .withTimeout(3)
-                                .andThen(
-                                    ()->
-                                        drive.withVelocityX(0) // Drive forward with negative Y (forward)
-                                            .withVelocityY(0) // Drive left with negative X (left)
-                                            .withRotationalRate(0)));
+            drivetrain.applyRequest(() ->
+                autoDrive
+                    .withVelocityX(-0.5 * MaxSpeed)
+                    .withVelocityY(0)
+                    .withRotationalRate(0)
+            ).withTimeout(3),
+            drivetrain.applyRequest(() ->
+                autoDrive
+                    .withVelocityX(0)
+                    .withVelocityY(0)
+                    .withRotationalRate(0)
+            ).withTimeout(0.02)
+        );
     }
 }
