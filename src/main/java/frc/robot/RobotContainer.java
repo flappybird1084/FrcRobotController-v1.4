@@ -163,10 +163,10 @@ public class RobotContainer {
         return Commands.sequence(
             Commands.runOnce(() -> drivetrain.resetRotation(drivetrain.getOperatorForwardDirection())),
             drivetrain.applyRequest(() ->
-                autoDrive.withVelocityX(-0.25 * MaxSpeed)
+                autoDrive.withVelocityX(-0.5 * MaxSpeed)
                     .withVelocityY(0)
                     .withRotationalRate(0)
-            ).withTimeout(2),
+            ).withTimeout(3),
             drivetrain.applyRequest(() ->
                 autoDrive.withVelocityX(0)
                     .withVelocityY(0)
