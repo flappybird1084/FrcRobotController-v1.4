@@ -23,9 +23,10 @@ import frc.robot.constants.Constants;
 import frc.robot.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.Intake;
 // import frc.robot.subsystems.Elevator;
 // import frc.robot.subsystems.Coral;
-// import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
     public double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -36,10 +37,10 @@ public class RobotContainer {
     public static Drive driveSubsystem;
     // public static Elevator elevatorSubsystem;
     // public static Coral coralSubsystem;
-    // public static Shooter shooterSubsystem;
+    public static Shooter shooterSubsystem;
+    public static Intake intakeSubsystem;
     
-    public static final int PigeonID = 15;
-    public static final Pigeon2 imu = new Pigeon2(RobotContainer.PigeonID);
+    public static final Pigeon2 imu = new Pigeon2(Constants.pigeonID);
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
     private final UdpTelemetryReceiver udpTelemetryReceiver = new UdpTelemetryReceiver(Constants.udpTelemetryPort);
@@ -52,7 +53,8 @@ public class RobotContainer {
 
     public RobotContainer() {
         driveSubsystem = new Drive(drivetrain, joystick);
-        // shooterSubsystem = new Shooter(coJoystick);
+        shooterSubsystem = new Shooter(coJoystick);
+        intakeSubsystem = new Intake(coJoystick);
         // elevatorSubsystem = new Elevator(coJoystick);
         // *** coralSubsystem = new Coral(coJoystick);
         udpTelemetryReceiver.start();
@@ -68,9 +70,25 @@ public class RobotContainer {
 
         // drivetrain.setDefaultCommand(driveSubsystem.getDefaultCommand());
         driveSubsystem.useDefaultCommand();
-        // elevatorSubsystem.setDefaultCommand(elevatorSubsystem.getDefaultCommand());
-        // *** coralSubsystem.setDefaultCommand(coralSubsystem.getDefaultCommand());
+
+
         // shooterSubsystem.setDefaultCommand(shooterSubsystem.getDefaultCommand());
+
+        // coJoystick.y().whileTrue(shooterSubsystem.runShooterCommand(coJoystick.getLeftY()));
+
+        // coJoystick right bumper: auto-RPM from AprilTag distance (overrides manual while held)
+        coJoystick.rightBumper().whileTrue(shooterSubsystem.autoRpmFromDistanceCommand());
+
+        coJoystick.leftBumper().whileTrue(shooterSubsystem.runFeederMotors(0.5));
+        coJoystick.y().whileTrue(shooterSubsystem.runFeederMotors(-0.5));
+        coJoystick.leftBumper()
+            .or(coJoystick.y())
+            .whileFalse(shooterSubsystem.runFeederMotors(0));
+
+
+        coJoystick.a().whileTrue(intakeSubsystem.runIntakeWithPivotDown(0.75));
+        coJoystick.b().whileTrue(intakeSubsystem.runIntake(-1));
+
 
         // drivetrain.setDefaultCommand(
         //     // Drivetrain will execute this command periodically
@@ -140,22 +158,17 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        final var autoDrive = new SwerveRequest.RobotCentric();
+        final SwerveRequest.FieldCentric autoDrive = new SwerveRequest.FieldCentric();
 
         return Commands.sequence(
-            Commands.runOnce(() -> {
-                // TODO: This maybe is off by 180?
-                drivetrain.resetRotation(drivetrain.getOperatorForwardDirection());
-            }),
+            Commands.runOnce(() -> drivetrain.resetRotation(drivetrain.getOperatorForwardDirection())),
             drivetrain.applyRequest(() ->
-                autoDrive
-                    .withVelocityX(-0.5 * MaxSpeed)
+                autoDrive.withVelocityX(-0.5 * MaxSpeed)
                     .withVelocityY(0)
                     .withRotationalRate(0)
             ).withTimeout(3),
             drivetrain.applyRequest(() ->
-                autoDrive
-                    .withVelocityX(0)
+                autoDrive.withVelocityX(0)
                     .withVelocityY(0)
                     .withRotationalRate(0)
             ).withTimeout(0.02)

@@ -131,6 +131,8 @@ public class Telemetry {
         SmartDashboard.putNumber("udp last timestamp", udpLastPacketTimestamp.get(0.0));
         SmartDashboard.putNumber("april tags detected", AprilTags.getDetectedCount());
         SmartDashboard.putNumber("seconds since last tag", UdpTelemetryReceiver.getSecondsSinceLastTag());
+        SmartDashboard.putNumber("nearest processor dist (m)", UdpTelemetryReceiver.getNearestProcessorDistMeters());
+        SmartDashboard.putNumber("nearest processor dist scaled (m)", UdpTelemetryReceiver.getNearestProcessorDistMeters() * frc.robot.constants.Constants.shooterDistanceScale + frc.robot.constants.Constants.shooterDistanceBias);
         SmartDashboard.putBoolean("processor tag detected", UdpTelemetryReceiver.isProcessorTagDetected());
         SmartDashboard.putBoolean("processor yaw valid", UdpTelemetryReceiver.isProcessorYawValid());
         SmartDashboard.putNumber(

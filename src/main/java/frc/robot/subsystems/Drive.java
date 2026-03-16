@@ -85,7 +85,7 @@ public class Drive extends SubsystemBase {
 
         if(Math.abs(joystick.getRightX()) >= 0.08) {
             targetAngle += -joystick.getRightX()*4;
-            kP = 3.0;
+            kP = 6;
             kI = 0.0001;
             kD = 0.15;
         } 

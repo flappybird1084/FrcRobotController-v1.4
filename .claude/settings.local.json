@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:codedocs.revrobotics.com)",
+      "WebFetch(domain:docs.revrobotics.com)"
+    ]
+  }
+}

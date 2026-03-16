@@ -21,6 +21,7 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
     public static volatile boolean processorTagDetected;
     public static volatile boolean processorYawValid;
     public static volatile double secondsSinceLastTag = Double.POSITIVE_INFINITY;
+    public static volatile double nearestProcessorDistMeters = Double.POSITIVE_INFINITY;
     private static volatile double lastTagTimestamp = -1.0;
 
     private final int port;
@@ -60,6 +61,10 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
 
     public static double getSecondsSinceLastTag() {
         return secondsSinceLastTag;
+    }
+
+    public static double getNearestProcessorDistMeters() {
+        return nearestProcessorDistMeters;
     }
 
     public void start() {
@@ -110,18 +115,21 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
 
                         if (nearestProcessor != null) {
                             processorTagDetected = true;
+                            nearestProcessorDistMeters = nearestProcessorDist;
                             Rotation2d rotateAngle = computeProcessorRotateAngle(nearestProcessor);
                             processorRotateAngle = rotateAngle;
                             processorYawValid = isProcessorRotateAngleWithinLimit(rotateAngle);
                             processorYawError = processorYawValid ? processorRotateAngle : new Rotation2d();
                         } else {
                             processorTagDetected = false;
+                            nearestProcessorDistMeters = Double.POSITIVE_INFINITY;
                             processorYawError = new Rotation2d();
                             processorRotateAngle = new Rotation2d();
                             processorYawValid = false;
                         }
                     } else {
                         processorTagDetected = false;
+                        nearestProcessorDistMeters = Double.POSITIVE_INFINITY;
                         processorYawError = new Rotation2d();
                         processorRotateAngle = new Rotation2d();
                         processorYawValid = false;
@@ -129,6 +137,7 @@ public final class UdpTelemetryReceiver implements AutoCloseable {
                 } catch (RuntimeException ex) {
                     AprilTags.setDetectedCount(0);
                     processorTagDetected = false;
+                    nearestProcessorDistMeters = Double.POSITIVE_INFINITY;
                     processorYawError = new Rotation2d();
                     processorRotateAngle = new Rotation2d();
                     processorYawValid = false;
