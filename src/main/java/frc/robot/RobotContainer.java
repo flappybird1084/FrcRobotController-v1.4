@@ -23,6 +23,7 @@ import frc.robot.constants.Constants;
 import frc.robot.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.LimelightVision;
 // import frc.robot.subsystems.Elevator;
 // import frc.robot.subsystems.Coral;
 // import frc.robot.subsystems.Shooter;
@@ -42,7 +43,7 @@ public class RobotContainer {
     public static final Pigeon2 imu = new Pigeon2(RobotContainer.PigeonID);
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
-    private final UdpTelemetryReceiver udpTelemetryReceiver = new UdpTelemetryReceiver(Constants.udpTelemetryPort);
+    private final LimelightVision limelightVision = new LimelightVision();
 
     public static final CommandXboxController joystick = new CommandXboxController(0);
 
@@ -55,7 +56,6 @@ public class RobotContainer {
         // shooterSubsystem = new Shooter(coJoystick);
         // elevatorSubsystem = new Elevator(coJoystick);
         // *** coralSubsystem = new Coral(coJoystick);
-        udpTelemetryReceiver.start();
         configureBindings();
     }
 
@@ -96,18 +96,9 @@ public class RobotContainer {
 
         joystick.rightBumper().onTrue(
             Commands.runOnce(() -> {
-                // if (joystick.getRightTriggerAxis() > 0.5
-                //     && UdpTelemetryReceiver.getSecondsSinceLastTag() > 0.4) {
-                //     return;
-                // }
-                if (UdpTelemetryReceiver.isProcessorTagDetected()
-                    && UdpTelemetryReceiver.isProcessorYawValid()
-                    && udpTelemetryReceiver.getSecondsSinceLastTag() < 0.4) {
-                    driveSubsystem.aimAtTag(UdpTelemetryReceiver.getProcessorYawError());
-                } 
-                // else {
-                //     driveSubsystem.setAimAtTagEnabled(false);
-                // }
+                if (limelightVision.isTargetFound()) {
+                    driveSubsystem.aimAtTag(Rotation2d.fromDegrees(-limelightVision.getTx()));
+                }
             }, driveSubsystem)
         );
         joystick.rightBumper().onFalse(
