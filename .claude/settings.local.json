@@ -2,7 +2,17 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:codedocs.revrobotics.com)",
-      "WebFetch(domain:docs.revrobotics.com)"
+      "WebFetch(domain:docs.revrobotics.com)",
+      "Bash(python -c \":*)",
+      "Bash(# Check version of WPILib Elastic - look for version in the exe or data files strings \"\"c:/Users/Public/wpilib/2026/elastic/elastic_dashboard.exe\"\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\([k for k in d.keys\\(\\) if ''2026'' in k]\\)\")",
+      "Bash(# Check the shared preferences to understand what fields are configured cat \"\"c:/Users/frc10/AppData/Roaming/com.gold872/elastic_dashboard/shared_preferences.json\"\" | python3 -m json.tool)",
+      "Bash(python3 -m json.tool)",
+      "Bash(# Check if there''s a version or changelog embedded in the exe or nearby strings \"\"c:/Users/Public/wpilib/2026/elastic/elastic_dashboard.exe\"\")",
+      "Bash(# Check if there''s a WPILib tools config find \"\"c:/Users/Public/wpilib/2026/\"\" -name \"\"*.json\"\" -maxdepth 2)",
+      "Bash(curl -s \"https://api.github.com/repos/Gold872/elastic-dashboard/releases\")",
+      "Bash(python3 -c \":*)",
+      "Bash(curl -sL \"https://api.github.com/repos/Gold872/elastic-dashboard/releases\")"
     ]
   }
 }

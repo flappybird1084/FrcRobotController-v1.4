@@ -10,12 +10,17 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 
@@ -44,6 +49,7 @@ public class RobotContainer {
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
     private final UdpTelemetryReceiver udpTelemetryReceiver = new UdpTelemetryReceiver(Constants.udpTelemetryPort);
+    private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
     public static final CommandXboxController joystick = new CommandXboxController(0);
 
@@ -59,6 +65,7 @@ public class RobotContainer {
         // *** coralSubsystem = new Coral(coJoystick);
         udpTelemetryReceiver.start();
         configureBindings();
+        configureAutoChooser();
     }
 
     public double scaling = 0.3;
@@ -158,22 +165,59 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        final var autoDrive = new SwerveRequest.RobotCentric();
+        return autoChooser.getSelected();
+    }
+
+    private void configureAutoChooser() {
+        autoChooser.setDefaultOption("Default Auto", buildDefaultAuto());
+        autoChooser.addOption("Do Nothing", Commands.none());
+        autoChooser.addOption("Path D", buildDPathAuto());
+        autoChooser.addOption("Path B", buildBPathAuto());
+        SmartDashboard.putData("Auto Chooser", autoChooser);
+    }
+
+    private Command buildDPathAuto() {
+        try {
+            PathPlannerPath path = PathPlannerPath.fromPathFile("d");
+            return Commands.sequence(
+                Commands.runOnce(() ->
+                    drivetrain.resetPose(path.getStartingHolonomicPose().orElse(new Pose2d()))
+                ),
+                AutoBuilder.followPath(path).deadlineFor(drivetrain.run(() -> {}))
+            );
+        } catch (Exception e) {
+            DriverStation.reportError("Failed to load path 'd': " + e.getMessage(), e.getStackTrace());
+            return Commands.none();
+        }
+    }
+
+    private Command buildBPathAuto() {
+        try {
+            PathPlannerPath path = PathPlannerPath.fromPathFile("b");
+            return Commands.sequence(
+                Commands.runOnce(() ->
+                    drivetrain.resetPose(path.getStartingHolonomicPose().orElse(new Pose2d()))
+                ),
+                AutoBuilder.followPath(path).deadlineFor(drivetrain.run(() -> {}))
+            );
+        } catch (Exception e) {
+            DriverStation.reportError("Failed to load path 'b': " + e.getMessage(), e.getStackTrace());
+            return Commands.none();
+        }
+    }
+
+    private Command buildDefaultAuto() {
+        final SwerveRequest.FieldCentric autoDrive = new SwerveRequest.FieldCentric();
 
         return Commands.sequence(
-            Commands.runOnce(() -> {
-                // TODO: This maybe is off by 180?
-                drivetrain.resetRotation(drivetrain.getOperatorForwardDirection());
-            }),
+            Commands.runOnce(() -> drivetrain.resetRotation(drivetrain.getOperatorForwardDirection())),
             drivetrain.applyRequest(() ->
-                autoDrive
-                    .withVelocityX(-0.5 * MaxSpeed)
+                autoDrive.withVelocityX(-0.5 * MaxSpeed)
                     .withVelocityY(0)
                     .withRotationalRate(0)
-            ).withTimeout(3),
+            ).withTimeout(1),
             drivetrain.applyRequest(() ->
-                autoDrive
-                    .withVelocityX(0)
+                autoDrive.withVelocityX(0)
                     .withVelocityY(0)
                     .withRotationalRate(0)
             ).withTimeout(0.02)
