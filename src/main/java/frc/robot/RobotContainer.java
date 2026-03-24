@@ -93,8 +93,6 @@ public class RobotContainer {
             .whileFalse(shooterSubsystem.runFeederMotors(0));
 
 
-        coJoystick.a().whileTrue(intakeSubsystem.runIntakeWithPivotDown(0.75));
-        coJoystick.b().whileTrue(intakeSubsystem.runIntake(-1));
 
 
         // drivetrain.setDefaultCommand(
@@ -169,16 +167,19 @@ public class RobotContainer {
     }
 
     private void configureAutoChooser() {
-        autoChooser.setDefaultOption("Default Auto", buildDefaultAuto());
         autoChooser.addOption("Do Nothing", Commands.none());
-        autoChooser.addOption("Path D", buildDPathAuto());
-        autoChooser.addOption("Path B", buildBPathAuto());
+        autoChooser.addOption("Path Left_Ball_Scrape", buildLeftBallPathAuto());
+        autoChooser.addOption("Path Right_Ball_Scrape", buildRightBallPathAuto());
+        autoChooser.addOption("Path Mid_Left", buildMidLeftPathAuto());
+        autoChooser.addOption("Path Mid_Right", buildMidRightPathAuto());
+        autoChooser.addOption("Path Move_Back", buildBackPathAuto());
         SmartDashboard.putData("Auto Chooser", autoChooser);
     }
 
-    private Command buildDPathAuto() {
+    // All Autonomous paths
+    private Command buildLeftBallPathAuto() { // Starts left trench
         try {
-            PathPlannerPath path = PathPlannerPath.fromPathFile("d");
+            PathPlannerPath path = PathPlannerPath.fromPathFile("leftballpickup");
             return Commands.sequence(
                 Commands.runOnce(() ->
                     drivetrain.resetPose(path.getStartingHolonomicPose().orElse(new Pose2d()))
@@ -191,9 +192,9 @@ public class RobotContainer {
         }
     }
 
-    private Command buildBPathAuto() {
+    private Command buildRightBallPathAuto() { // Starts right trench
         try {
-            PathPlannerPath path = PathPlannerPath.fromPathFile("b");
+            PathPlannerPath path = PathPlannerPath.fromPathFile("rightballpickup");
             return Commands.sequence(
                 Commands.runOnce(() ->
                     drivetrain.resetPose(path.getStartingHolonomicPose().orElse(new Pose2d()))
@@ -206,21 +207,48 @@ public class RobotContainer {
         }
     }
 
-    private Command buildDefaultAuto() {
-        final SwerveRequest.FieldCentric autoDrive = new SwerveRequest.FieldCentric();
+    private Command buildMidLeftPathAuto() { // Starts middle, goes to left trench
+        try {
+            PathPlannerPath path = PathPlannerPath.fromPathFile("midleftcarry");
+            return Commands.sequence(
+                Commands.runOnce(() ->
+                    drivetrain.resetPose(path.getStartingHolonomicPose().orElse(new Pose2d()))
+                ),
+                AutoBuilder.followPath(path).deadlineFor(drivetrain.run(() -> {}))
+            );
+        } catch (Exception e) {
+            DriverStation.reportError("Failed to load path 'b': " + e.getMessage(), e.getStackTrace());
+            return Commands.none();
+        }
+    }
 
-        return Commands.sequence(
-            Commands.runOnce(() -> drivetrain.resetRotation(drivetrain.getOperatorForwardDirection())),
-            drivetrain.applyRequest(() ->
-                autoDrive.withVelocityX(-0.5 * MaxSpeed)
-                    .withVelocityY(0)
-                    .withRotationalRate(0)
-            ).withTimeout(1),
-            drivetrain.applyRequest(() ->
-                autoDrive.withVelocityX(0)
-                    .withVelocityY(0)
-                    .withRotationalRate(0)
-            ).withTimeout(0.02)
-        );
+    private Command buildMidRightPathAuto() { // Starts middle, goes to right trench
+        try {
+            PathPlannerPath path = PathPlannerPath.fromPathFile("midrightcarry");
+            return Commands.sequence(
+                Commands.runOnce(() ->
+                    drivetrain.resetPose(path.getStartingHolonomicPose().orElse(new Pose2d()))
+                ),
+                AutoBuilder.followPath(path).deadlineFor(drivetrain.run(() -> {}))
+            );
+        } catch (Exception e) {
+            DriverStation.reportError("Failed to load path 'b': " + e.getMessage(), e.getStackTrace());
+            return Commands.none();
+        }
+    }
+
+    private Command buildBackPathAuto() { // Starts left trench
+        try {
+            PathPlannerPath path = PathPlannerPath.fromPathFile("moveback");
+            return Commands.sequence(
+                Commands.runOnce(() ->
+                    drivetrain.resetPose(path.getStartingHolonomicPose().orElse(new Pose2d()))
+                ),
+                AutoBuilder.followPath(path).deadlineFor(drivetrain.run(() -> {}))
+            );
+        } catch (Exception e) {
+            DriverStation.reportError("Failed to load path 'd': " + e.getMessage(), e.getStackTrace());
+            return Commands.none();
+        }
     }
 }

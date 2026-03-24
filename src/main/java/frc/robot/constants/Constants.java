@@ -36,6 +36,9 @@ public class Constants {
 
     public static final int shooterFeederMotor1ID = 23;
     public static final int shooterFeederMotor2ID = 24;
+   
+    public static final int intakeMotorID = 26;
+    public static final int pivotMotorID = 25;
 
     // Shooter flywheel tuning
     public static final double shooterMaxRpm = 5000.0;
