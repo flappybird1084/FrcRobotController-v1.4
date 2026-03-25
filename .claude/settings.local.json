@@ -13,6 +13,9 @@
       "Bash(curl -s \"https://api.github.com/repos/Gold872/elastic-dashboard/releases\")",
       "Bash(python3 -c \":*)",
       "Bash(curl -sL \"https://api.github.com/repos/Gold872/elastic-dashboard/releases\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\frc10\\.claude\\projects\\c--Users-frc10-Documents-FrcRobotController-v1-4-Imported\\memory"
     ]
   }
 }

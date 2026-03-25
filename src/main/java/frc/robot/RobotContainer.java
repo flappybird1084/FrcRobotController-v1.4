@@ -88,6 +88,10 @@ public class RobotContainer {
 
         coJoystick.leftBumper().whileTrue(shooterSubsystem.runFeederMotors(0.5));
         coJoystick.y().whileTrue(shooterSubsystem.runFeederMotors(-0.5));
+        coJoystick.b().onTrue(intakeSubsystem.resetPivotEncoderCommand());
+        coJoystick.x().onTrue(intakeSubsystem.snapPivotUpCommand());
+        coJoystick.a().onTrue(intakeSubsystem.snapPivotDownCommand());
+
         coJoystick.leftBumper()
             .or(coJoystick.y())
             .whileFalse(shooterSubsystem.runFeederMotors(0));
@@ -178,13 +182,27 @@ public class RobotContainer {
 
     // All Autonomous paths
     private Command buildLeftBallPathAuto() { // Starts left trench
+        // ── Intake timing (tune these to match actual path duration) ──────────────
+        // Estimated total path time: ~12-15 s. Start intake at ~40%, stop at ~80%.
+        final double INTAKE_START_DELAY = 5.0;  // seconds before intake turns on
+        final double INTAKE_DURATION    = 5.0;  // seconds to run intake
+        final double INTAKE_POWER       = 0.75;
+        // ─────────────────────────────────────────────────────────────────────────
+
         try {
             PathPlannerPath path = PathPlannerPath.fromPathFile("leftballpickup");
             return Commands.sequence(
                 Commands.runOnce(() ->
                     drivetrain.resetPose(path.getStartingHolonomicPose().orElse(new Pose2d()))
                 ),
-                AutoBuilder.followPath(path).deadlineFor(drivetrain.run(() -> {}))
+                Commands.parallel(
+                    AutoBuilder.followPath(path).deadlineFor(drivetrain.run(() -> {})),
+                    Commands.sequence(
+                        Commands.waitSeconds(INTAKE_START_DELAY),
+                        intakeSubsystem.runIntakeAutoCommand(INTAKE_POWER)
+                            .withTimeout(INTAKE_DURATION)
+                    )
+                )
             );
         } catch (Exception e) {
             DriverStation.reportError("Failed to load path 'd': " + e.getMessage(), e.getStackTrace());
