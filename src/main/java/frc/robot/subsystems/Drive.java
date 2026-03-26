@@ -36,7 +36,6 @@ public class Drive extends SubsystemBase {
     public static double kP; // 3.5
     public static double kI; // 0
     public static double kD; // 0.15
-    private boolean aimAtTag;
 
 
     public Drive(CommandSwerveDrivetrain x, CommandXboxController joystick)
@@ -74,15 +73,6 @@ public class Drive extends SubsystemBase {
     }
 
     public void periodic(){
-        double gyroAngle = Constants.imu.getYaw().getValueAsDouble();
-
-        if (aimAtTag) {
-            kP = 3.0;
-            kI = 0.0001;
-            kD = 0.15;
-            return;
-        }
-
         if(Math.abs(joystick.getRightX()) >= 0.08) {
             targetAngle += -joystick.getRightX()*4;
             kP = 6;
@@ -119,20 +109,9 @@ public class Drive extends SubsystemBase {
         targetAngle = angle;
     }
 
-    public void aimAtTag(Rotation2d yawError) {
-        aimAtTag = true;
-        if (yawError == null) {
-            return;
-        }
-        // targetAngle = Constants.imu.getYaw().getValueAsDouble()
-        targetAngle = targetAngle
-            + yawError.getDegrees()
-            + Constants.cameraFieldRotation.getDegrees();
-    }
-
-    public void setAimAtTagEnabled(boolean enabled) {
-        aimAtTag = enabled;
-    }
+    // APRILTAG/CAMERA AIM DISABLED FOR COMP 2.
+    // public void aimAtTag(Rotation2d yawError) { ... }
+    // public void setAimAtTagEnabled(boolean enabled) { ... }
 
     public Pose2d getPose() {
         return drivetrain.getState().Pose;
@@ -222,8 +201,8 @@ public class Drive extends SubsystemBase {
         PathPlannerPath path = new PathPlannerPath(
             waypoints,
             new PathConstraints(
-                0.5, 
-                0.5,
+                Constants.compBackoffMaxVel,
+                Constants.compBackoffMaxAccel,
                 Units.degreesToRadians(360), 
                 Units.degreesToRadians(90)
             ),
@@ -239,6 +218,11 @@ public class Drive extends SubsystemBase {
         return lastPath;
 
     } 
+
+    public Command compBackoffCommand() {
+        // Negative X is robot-relative reverse, so this backs away from the wall.
+        return pathRelative(-Math.abs(Constants.compBackoffMeters), 0.0, 0.0);
+    }
 
 
 

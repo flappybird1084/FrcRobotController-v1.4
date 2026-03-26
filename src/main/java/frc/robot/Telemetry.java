@@ -9,11 +9,9 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoublePublisher;
-import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringPublisher;
-import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
@@ -23,7 +21,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
-import frc.robot.subsystems.AprilTags;
+import frc.robot.constants.Constants;
 import frc.robot.subsystems.Shooter;
 
 public class Telemetry {
@@ -42,7 +40,7 @@ public class Telemetry {
         for (int i = 0; i < 4; ++i) {
             SmartDashboard.putData("Module " + i, m_moduleMechanisms[i]);
         }
-        SmartDashboard.putNumber("april tags detected", 0);
+        // SmartDashboard.putNumber("april tags detected", 0); // APRILTAG/CAMERA DISABLED FOR COMP 2
     }
 
     /* What to publish over networktables for telemetry */
@@ -62,12 +60,6 @@ public class Telemetry {
     private final NetworkTable table = inst.getTable("Pose");
     private final DoubleArrayPublisher fieldPub = table.getDoubleArrayTopic("Robot").publish();
     private final StringPublisher fieldTypePub = table.getStringTopic(".type").publish();
-
-    /* UDP telemetry */
-    private final NetworkTable udpTable = inst.getTable("Udp");
-    private final StringSubscriber udpLastPacket = udpTable.getStringTopic("LastPacket").subscribe("");
-    private final DoubleSubscriber udpLastPacketBytes = udpTable.getDoubleTopic("LastPacketBytes").subscribe(0.0);
-    private final DoubleSubscriber udpLastPacketTimestamp = udpTable.getDoubleTopic("LastPacketTimestamp").subscribe(0.0);
 
     /* Mechanisms to represent the swerve module states */
     private final Mechanism2d[] m_moduleMechanisms = new Mechanism2d[] {
@@ -144,22 +136,19 @@ public class Telemetry {
         SmartDashboard.putNumber("target shooter rpm", Shooter.targetRpm);
         SmartDashboard.putNumber("current shooter rpm", Shooter.currentRpm);
         SmartDashboard.putNumber("shooter power", Shooter.shooterPower);
-        SmartDashboard.putString("udp last packet", udpLastPacket.get(""));
-        SmartDashboard.putNumber("udp last timestamp", udpLastPacketTimestamp.get(0.0));
-        SmartDashboard.putNumber("april tags detected", AprilTags.getDetectedCount());
-        SmartDashboard.putNumber("seconds since last tag", UdpTelemetryReceiver.getSecondsSinceLastTag());
-        SmartDashboard.putNumber("nearest processor dist (m)", UdpTelemetryReceiver.getNearestProcessorDistMeters());
-        SmartDashboard.putNumber("nearest processor dist scaled (m)", UdpTelemetryReceiver.getNearestProcessorDistMeters() * frc.robot.constants.Constants.shooterDistanceScale + frc.robot.constants.Constants.shooterDistanceBias);
-        SmartDashboard.putBoolean("processor tag detected", UdpTelemetryReceiver.isProcessorTagDetected());
-        SmartDashboard.putBoolean("processor yaw valid", UdpTelemetryReceiver.isProcessorYawValid());
-        SmartDashboard.putNumber(
-            "processor yaw error (deg)",
-            UdpTelemetryReceiver.getProcessorYawError().getDegrees()
-        );
-        SmartDashboard.putNumber(
-            "processor rotate angle",
-            UdpTelemetryReceiver.getProcessorRotateAngle().getDegrees()
-        );
+        SmartDashboard.putNumber("shooter/leftY_input", Shooter.leftYInput);
+        SmartDashboard.putNumber("shooter/blue_cmd_power", Shooter.blueCmdPower);
+        SmartDashboard.putNumber("shooter/green_cmd_power", Shooter.greenCmdPower);
+        SmartDashboard.putNumber("shooter/feeder_cmd_power", Shooter.feederCmdPower);
+        SmartDashboard.putNumber("shooter/blue_actual_rpm", Shooter.blueActualRpm);
+        SmartDashboard.putNumber("shooter/green_actual_rpm", Shooter.greenActualRpm);
+        SmartDashboard.putNumber("comp/backoff_meters", Constants.compBackoffMeters);
+        SmartDashboard.putNumber("comp/backoff_max_vel", Constants.compBackoffMaxVel);
+        SmartDashboard.putNumber("comp/backoff_max_accel", Constants.compBackoffMaxAccel);
+
+        // APRILTAG/CAMERA TELEMETRY DISABLED FOR COMP 2.
+        // SmartDashboard.putString("udp last packet", ...);
+        // SmartDashboard.putNumber("april tags detected", ...);
 
         // SmartDashboard.putNumber("target pos", Elevator.getTargetPosition());
         // SmartDashboard.putNumber("current pos", Elevator.getCurrentPosition());

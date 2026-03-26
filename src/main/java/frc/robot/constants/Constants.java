@@ -3,9 +3,6 @@ import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation3d;
-import java.util.List;
 import frc.robot.constants.TunerConstants;
 
 public class Constants {
@@ -15,27 +12,22 @@ public class Constants {
     public static final int pigeonID = 15;
     public static final Pigeon2 imu = new Pigeon2(Constants.pigeonID);
 
-    public static final int udpTelemetryPort = 5800;
+    // public static final int udpTelemetryPort = 5800; // APRILTAG/CAMERA DISABLED FOR COMP 2
 
-    // Camera-to-robot transform in robot frame (meters) and camera yaw offset in field frame.
-    public static final Translation3d cameraToRobotOffset = new Translation3d(0.0, 0.0, 0.0);
-    // as for this camera offset, i would ask AI what xyz mean in this context. i'm not entirely sure that x and y are field translation, y might be height...
-    public static final Rotation2d cameraFieldRotation = new Rotation2d(0.0);
-    public static final List<Double> processorRotateAngleLimitDeg = List.of(-30.0, 30.0);
+    // public static final Translation3d cameraToRobotOffset = new Translation3d(0.0, 0.0, 0.0); // APRILTAG/CAMERA DISABLED FOR COMP 2
+    // public static final Rotation2d cameraFieldRotation = new Rotation2d(0.0); // APRILTAG/CAMERA DISABLED FOR COMP 2
+    // public static final List<Double> processorRotateAngleLimitDeg = List.of(-30.0, 30.0); // APRILTAG/CAMERA DISABLED FOR COMP 2
 
-    // Multiplier applied to the raw camera-to-tag distance before feeding into the shooter RPM curve.
-    // Tune this to compensate for camera mounting offset or field measurement discrepancies.
-    public static final double shooterDistanceScale = 1.31;
+    // public static final double shooterDistanceScale = 1.31; // APRILTAG/CAMERA DISABLED FOR COMP 2
 
-    // Flat offset added to the scaled distance (meters).
-    // Accounts for the physical gap between the camera and the shooter exit point.
-    public static final double shooterDistanceBias = 0.5;
+    // public static final double shooterDistanceBias = 0.5; // APRILTAG/CAMERA DISABLED FOR COMP 2
 
     public static final int blueShooterMotorID = 21;
     public static final int greenShooterMotorID = 22;
+    public static final int shooterFeederMotorID = 23; // CHANGE THIS AT PRACTICE if feeder CAN ID differs.
 
-    public static final int shooterFeederMotor1ID = 23;
-    public static final int shooterFeederMotor2ID = 24;
+    // public static final int shooterFeederMotor1ID = 23; // OLD DUAL-FEEDER CONFIG
+    // public static final int shooterFeederMotor2ID = 24; // OLD DUAL-FEEDER CONFIG
    
     public static final int intakeMotorID = 26;
     public static final int pivotMotorID = 25;
@@ -52,4 +44,16 @@ public class Constants {
     public static final double shooterKi = 0.0;
     public static final double shooterKd = 0.0;
     public static final double shooterKv = 12.0 / shooterMaxRps;
+
+    // Open-loop shooter/feeder scaling for comp controls.
+    public static final double shooterStickScale = 0.85; // CHANGE THIS AT PRACTICE.
+    public static final double feederStickScale = 0.85; // CHANGE THIS AT PRACTICE.
+    public static final double blueShooterDirection = 1.0; // CHANGE THIS AT PRACTICE if spin direction is backwards.
+    public static final double greenShooterDirection = -1.0; // CHANGE THIS AT PRACTICE if spin direction is backwards.
+    public static final double feederDirection = 1.0; // CHANGE THIS AT PRACTICE if feed direction is backwards.
+
+    // Comp "back off from wall" tuning values.
+    public static final double compBackoffMeters = 1.5; // CHANGE THIS AT PRACTICE.
+    public static final double compBackoffMaxVel = 0.5; // CHANGE THIS AT PRACTICE.
+    public static final double compBackoffMaxAccel = 0.5; // CHANGE THIS AT PRACTICE.
 }

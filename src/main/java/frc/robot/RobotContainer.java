@@ -48,7 +48,7 @@ public class RobotContainer {
     public static final Pigeon2 imu = new Pigeon2(Constants.pigeonID);
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
-    private final UdpTelemetryReceiver udpTelemetryReceiver = new UdpTelemetryReceiver(Constants.udpTelemetryPort);
+    // private final UdpTelemetryReceiver udpTelemetryReceiver = new UdpTelemetryReceiver(Constants.udpTelemetryPort); // APRILTAG/CAMERA DISABLED FOR COMP 2
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
     public static final CommandXboxController joystick = new CommandXboxController(0);
@@ -63,7 +63,7 @@ public class RobotContainer {
         intakeSubsystem = new Intake(coJoystick);
         // elevatorSubsystem = new Elevator(coJoystick);
         // *** coralSubsystem = new Coral(coJoystick);
-        udpTelemetryReceiver.start();
+        // udpTelemetryReceiver.start(); // APRILTAG/CAMERA DISABLED FOR COMP 2
         configureBindings();
         configureAutoChooser();
     }
@@ -79,22 +79,9 @@ public class RobotContainer {
         driveSubsystem.useDefaultCommand();
 
 
-        // shooterSubsystem.setDefaultCommand(shooterSubsystem.getDefaultCommand());
-
-        // coJoystick.y().whileTrue(shooterSubsystem.runShooterCommand(coJoystick.getLeftY()));
-
-        // coJoystick right bumper: auto-RPM from AprilTag distance (overrides manual while held)
-        coJoystick.rightBumper().whileTrue(shooterSubsystem.autoRpmFromDistanceCommand());
-
-        coJoystick.leftBumper().whileTrue(shooterSubsystem.runFeederMotors(0.5));
-        coJoystick.y().whileTrue(shooterSubsystem.runFeederMotors(-0.5));
         coJoystick.b().onTrue(intakeSubsystem.resetPivotEncoderCommand());
         coJoystick.x().onTrue(intakeSubsystem.snapPivotUpCommand());
         coJoystick.a().onTrue(intakeSubsystem.snapPivotDownCommand());
-
-        coJoystick.leftBumper()
-            .or(coJoystick.y())
-            .whileFalse(shooterSubsystem.runFeederMotors(0));
 
 
 
@@ -121,25 +108,9 @@ public class RobotContainer {
             point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
         ));
 
-        joystick.rightBumper().onTrue(
-            Commands.runOnce(() -> {
-                // if (joystick.getRightTriggerAxis() > 0.5
-                //     && UdpTelemetryReceiver.getSecondsSinceLastTag() > 0.4) {
-                //     return;
-                // }
-                if (UdpTelemetryReceiver.isProcessorTagDetected()
-                    && UdpTelemetryReceiver.isProcessorYawValid()
-                    && udpTelemetryReceiver.getSecondsSinceLastTag() < 0.4) {
-                    driveSubsystem.aimAtTag(UdpTelemetryReceiver.getProcessorYawError());
-                } 
-                // else {
-                //     driveSubsystem.setAimAtTagEnabled(false);
-                // }
-            }, driveSubsystem)
-        );
-        joystick.rightBumper().onFalse(
-            new InstantCommand(() -> driveSubsystem.setAimAtTagEnabled(false), driveSubsystem)
-        );
+        // APRILTAG/CAMERA AIM DISABLED FOR COMP 2.
+        // joystick.rightBumper().onTrue(...)
+        // joystick.rightBumper().onFalse(...)
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
@@ -148,9 +119,9 @@ public class RobotContainer {
         joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
         joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-        joystick.x().onTrue(
+        joystick.x().and(joystick.back().negate()).and(joystick.start().negate()).onTrue(
                 new InstantCommand(() -> {
-                    driveSubsystem.pathRelative(1, 0, Math.toRadians(90)).schedule();
+                    driveSubsystem.compBackoffCommand().schedule(); // CHANGE THIS AT PRACTICE via Constants.compBackoffMeters.
                 }, driveSubsystem
         ));
 
