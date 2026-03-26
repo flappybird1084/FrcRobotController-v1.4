@@ -133,15 +133,8 @@ public class Telemetry {
         var alliance = DriverStation.getAlliance();
         SmartDashboard.putString("alliance", alliance.isPresent() ? alliance.get().toString() : "Unknown");
         SmartDashboard.putNumber("station", DriverStation.getLocation().orElse(0));
-        SmartDashboard.putNumber("target shooter rpm", Shooter.targetRpm);
         SmartDashboard.putNumber("current shooter rpm", Shooter.currentRpm);
-        SmartDashboard.putNumber("shooter power", Shooter.shooterPower);
-        SmartDashboard.putNumber("shooter/leftY_input", Shooter.leftYInput);
-        SmartDashboard.putNumber("shooter/blue_cmd_power", Shooter.blueCmdPower);
-        SmartDashboard.putNumber("shooter/green_cmd_power", Shooter.greenCmdPower);
-        SmartDashboard.putNumber("shooter/feeder_cmd_power", Shooter.feederCmdPower);
-        SmartDashboard.putNumber("shooter/blue_actual_rpm", Shooter.blueActualRpm);
-        SmartDashboard.putNumber("shooter/green_actual_rpm", Shooter.greenActualRpm);
+        SmartDashboard.putNumber("shooter preset rpm", Constants.shooterPresetRPM);
         SmartDashboard.putNumber("comp/backoff_meters", Constants.compBackoffMeters);
         SmartDashboard.putNumber("comp/backoff_max_vel", Constants.compBackoffMaxVel);
         SmartDashboard.putNumber("comp/backoff_max_accel", Constants.compBackoffMaxAccel);

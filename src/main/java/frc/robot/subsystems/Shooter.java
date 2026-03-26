@@ -15,18 +15,7 @@ public class Shooter extends SubsystemBase {
     public static final TalonFX greenMotor = new TalonFX(Constants.greenShooterMotorID);
     public static final SparkMax feederMotor = new SparkMax(Constants.shooterFeederMotorID, MotorType.kBrushless);
 
-    // Existing telemetry compatibility fields.
-    public static double targetRpm = 0.0;
     public static double currentRpm = 0.0;
-    public static double shooterPower = 0.0;
-
-    // Added telemetry fields for fast pit tuning.
-    public static double leftYInput = 0.0;
-    public static double blueCmdPower = 0.0;
-    public static double greenCmdPower = 0.0;
-    public static double feederCmdPower = 0.0;
-    public static double blueActualRpm = 0.0;
-    public static double greenActualRpm = 0.0;
 
     public Shooter(CommandXboxController joystick) {
         this.joystick = joystick;
@@ -39,19 +28,20 @@ public class Shooter extends SubsystemBase {
             input = 0.0;
         }
 
-        leftYInput = input;
-        blueCmdPower = input * Constants.shooterStickScale * Constants.blueShooterDirection;
-        greenCmdPower = input * Constants.shooterStickScale * Constants.greenShooterDirection;
-        feederCmdPower = input * Constants.feederStickScale * Constants.feederDirection;
+        boolean bHeld = joystick.b().getAsBoolean();
+        if (bHeld) {
+            double presetOutput = Math.min(1.0, Math.abs(Constants.shooterPresetRPM) / Constants.shooterMaxRpm);
+            blueMotor.set(presetOutput * Constants.blueShooterDirection);
+            greenMotor.set(presetOutput * Constants.greenShooterDirection);
+            feederMotor.set(Constants.shooterPresetFeederPower * Constants.feederDirection);
+        } else {
+            blueMotor.set(input * Constants.blueShooterDirection);
+            greenMotor.set(input * Constants.greenShooterDirection);
+            feederMotor.set(input * Constants.feederDirection);
+        }
 
-        blueMotor.set(blueCmdPower);
-        greenMotor.set(greenCmdPower);
-        feederMotor.set(feederCmdPower);
-
-        blueActualRpm = blueMotor.getVelocity().getValueAsDouble() * 60.0;
-        greenActualRpm = greenMotor.getVelocity().getValueAsDouble() * 60.0;
-        targetRpm = blueCmdPower * Constants.shooterMaxRpm;
-        currentRpm = blueActualRpm;
-        shooterPower = blueCmdPower;
+        double blueActualRpm = Math.abs(blueMotor.getVelocity().getValueAsDouble() * 60.0);
+        double greenActualRpm = Math.abs(greenMotor.getVelocity().getValueAsDouble() * 60.0);
+        currentRpm = (blueActualRpm + greenActualRpm) / 2.0;
     }
 }

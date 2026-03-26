@@ -79,7 +79,7 @@ public class RobotContainer {
         driveSubsystem.useDefaultCommand();
 
 
-        coJoystick.b().onTrue(intakeSubsystem.resetPivotEncoderCommand());
+        coJoystick.rightTrigger().onTrue(intakeSubsystem.resetPivotEncoderCommand());
         coJoystick.x().onTrue(intakeSubsystem.snapPivotUpCommand());
         coJoystick.a().onTrue(intakeSubsystem.snapPivotDownCommand());
 
