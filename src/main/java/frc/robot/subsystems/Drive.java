@@ -223,7 +223,4 @@ public class Drive extends SubsystemBase {
         // Negative X is robot-relative reverse, so this backs away from the wall.
         return pathRelative(-Math.abs(Constants.compBackoffMeters), 0.0, 0.0);
     }
-
-
-
 }
