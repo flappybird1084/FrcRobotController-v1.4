@@ -66,7 +66,7 @@ public class Telemetry {
     /* UDP telemetry */
     private final NetworkTable udpTable = inst.getTable("Udp");
     private final StringSubscriber udpLastPacket = udpTable.getStringTopic("LastPacket").subscribe("");
-    private final DoubleSubscriber udpLastPacketBytes = udpTable.getDoubleTopic("LastPacketBytes").subscribe(0.0);
+    // private final DoubleSubscriber udpLastPacketBytes = udpTable.getDoubleTopic("LastPacketBytes").subscribe(0.0);
     private final DoubleSubscriber udpLastPacketTimestamp = udpTable.getDoubleTopic("LastPacketTimestamp").subscribe(0.0);
 
     /* Mechanisms to represent the swerve module states */
@@ -141,9 +141,8 @@ public class Telemetry {
         var alliance = DriverStation.getAlliance();
         SmartDashboard.putString("alliance", alliance.isPresent() ? alliance.get().toString() : "Unknown");
         SmartDashboard.putNumber("station", DriverStation.getLocation().orElse(0));
-        SmartDashboard.putNumber("target shooter rpm", Shooter.targetRpm);
-        SmartDashboard.putNumber("current shooter rpm", Shooter.currentRpm);
-        SmartDashboard.putNumber("shooter power", Shooter.shooterPower);
+        SmartDashboard.putNumber("shooter/blue rpm", Shooter.currentRpm);
+        SmartDashboard.putNumber("shooter/green rpm", Shooter.currentGreenRpm);
         SmartDashboard.putString("udp last packet", udpLastPacket.get(""));
         SmartDashboard.putNumber("udp last timestamp", udpLastPacketTimestamp.get(0.0));
         SmartDashboard.putNumber("april tags detected", AprilTags.getDetectedCount());

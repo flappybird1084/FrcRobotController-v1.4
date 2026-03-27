@@ -15,11 +15,12 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.constants.Constants;
 
 public class Intake extends SubsystemBase {
-    private static final double INTAKE_STICK_SCALE = 0.60;
+    private static final double INTAKE_STICK_SCALE = 0.45;
     private static final double JOYSTICK_DEADBAND  = 0.05;
 
-    private static final double PIVOT_UP_POS   = -2.115;
-    private static final double PIVOT_DOWN_POS = -0.1;
+    private static final double PIVOT_UP_POS   = 0;
+    private static final double PIVOT_DOWN_POS = 2.05;
+    ;
 
     private final TalonFX intakeMotor;
     private final TalonFX pivotMotor1;
@@ -50,14 +51,15 @@ public class Intake extends SubsystemBase {
         pivotMotor1.setNeutralMode(NeutralModeValue.Brake);
     }
 
-    /** Snap pivot to fully up position (-2.115). Bind with onTrue(). */
+    /** Snap pivot to fully up position (2). Bind with onTrue(). */
     public Command snapPivotUpCommand() {
         return Commands.runOnce(() -> { pivotSnapActive = true; pivotSnapTarget = PIVOT_UP_POS; }, this);
     }
 
     /** Snap pivot to fully down position (0). Bind with onTrue(). */
     public Command snapPivotDownCommand() {
-        return Commands.runOnce(() -> { pivotSnapActive = true; pivotSnapTarget = PIVOT_DOWN_POS; }, this);
+        return Commands.runOnce(() -> { pivotSnapActive = 
+            true; pivotSnapTarget = PIVOT_DOWN_POS; }, this);
     }
 
     /** Zeroes the pivot encoder position. Bind with onTrue(). */
@@ -68,7 +70,7 @@ public class Intake extends SubsystemBase {
     /** Run the intake roller at a fixed power from an auto command, bypassing joystick. */
     public Command runIntakeAutoCommand(double power) {
         return Commands.startEnd(
-            () -> { autoOverrideActive = true; autoOverridePower = power; },
+            () -> { autoOverrideActive = true; autoOverridePower = -power; },
             () -> { autoOverrideActive = false; autoOverridePower = 0.0; },
             this
         );
@@ -76,22 +78,19 @@ public class Intake extends SubsystemBase {
 
     @Override
     public void periodic() {
+        // Intake roller — auto override takes priority over joystick
         if (autoOverrideActive) {
             intakeMotor.set(autoOverridePower);
-            double actualPos = pivotMotor1.getPosition().getValueAsDouble();
-            SmartDashboard.putNumber("pivot/actual_pos", actualPos);
-            return;
-        }
-
-        // Intake roller — right joystick Y
-        double rightY = joystick.getRightY();
-        if (Math.abs(rightY) > JOYSTICK_DEADBAND) {
-            intakeMotor.set(-rightY * INTAKE_STICK_SCALE);
         } else {
-            intakeMotor.set(0);
+            double rightY = joystick.getRightY();
+            if (Math.abs(rightY) > JOYSTICK_DEADBAND) {
+                intakeMotor.set(-rightY * INTAKE_STICK_SCALE);
+            } else {
+                intakeMotor.set(0);
+            }
         }
 
-        // Pivot — hold snap target if active, otherwise brake
+        // Pivot — always runs regardless of intake override so it holds position during auto
         if (pivotSnapActive) {
             pivotMotor1.setControl(pivotPositionRequest.withPosition(pivotSnapTarget));
         } else {

@@ -41,7 +41,7 @@ public class Constants {
     public static final int pivotMotorID = 25;
 
     // Shooter flywheel tuning
-    public static final double shooterMaxRpm = 5000.0;
+    public static final double shooterMaxRpm = 6000.0;
     public static final double shooterMaxRps = shooterMaxRpm / 60.0;
     public static final double shooterJoystickDeadband = 0.05;
 
@@ -52,4 +52,17 @@ public class Constants {
     public static final double shooterKi = 0.0;
     public static final double shooterKd = 0.0;
     public static final double shooterKv = 12.0 / shooterMaxRps;
+
+    // Shooting preset RPMs — tune after field testing
+    public static final double mediumShooterRpm = 4500.0;  // both motors same speed
+
+    // Close preset: blue (bottom) spins faster than green (top) for more upward loft
+    public static final double closeShooterBlueRpm  = 3000.0;
+    public static final double closeShooterGreenRpm = 5200.0;
+
+    // Feeder power when running a preset
+    public static final double presetFeederPower = 0.75;
+
+    // Distance the driver backs up from the hub for the "medium" preset (meters)
+    public static final double mediumStandoffMeters = 1.5;
 }

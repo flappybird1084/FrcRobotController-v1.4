@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -7,131 +8,122 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
-import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.UdpTelemetryReceiver;
 import frc.robot.constants.Constants;
 
 public class Shooter extends SubsystemBase {
     private final CommandXboxController joystick;
 
+    public static double currentRpm = 0.0;       // blue (lower) motor RPM
+    public static double currentGreenRpm = 0.0;  // green (upper) motor RPM
 
-    // Distance (meters, after scale+bias applied) → target RPM, one curve per motor.
-    // Replace placeholder points with real measured values; interpolation fills in between.
-    private static final InterpolatingDoubleTreeMap BLUE_RPM_CURVE  = new InterpolatingDoubleTreeMap();
-    private static final InterpolatingDoubleTreeMap GREEN_RPM_CURVE = new InterpolatingDoubleTreeMap();
-    static {
-        BLUE_RPM_CURVE.put(1.0, 1500.0);
-        BLUE_RPM_CURVE.put(2.0, 2500.0);
-        BLUE_RPM_CURVE.put(3.0, 3500.0);
-        BLUE_RPM_CURVE.put(4.0, 4500.0);
+    public enum ShootingMode { MEDIUM, FAR }
+    static ShootingMode shootingMode = ShootingMode.MEDIUM;  // package-visible for Telemetry
 
-        GREEN_RPM_CURVE.put(1.0, 1500.0);
-        GREEN_RPM_CURVE.put(2.0, 2500.0);
-        GREEN_RPM_CURVE.put(3.0, 3500.0);
-        GREEN_RPM_CURVE.put(4.0, 4500.0);
-    }
+    private boolean presetActive = false;
+    private boolean presetFeedsEnabled = true;
+    private final VelocityVoltage velocityRequest = new VelocityVoltage(0).withSlot(1);
 
-    public static double targetRpm      = 0.0;
-    public static double targetGreenRpm = 0.0;
-    public static double currentRpm     = 0.0;
-    public static double shooterPower   = 0.0;
-
-    public static final TalonFX blueMotor  = new TalonFX(Constants.blueShooterMotorID);
-    public static final TalonFX greenMotor = new TalonFX(Constants.greenShooterMotorID);
-
-    // Feeders use simple power control — no velocity loop needed.
-    public static final SparkMax feeder1 = new SparkMax(Constants.shooterFeederMotor1ID, MotorType.kBrushless);
-    public static final SparkMax feeder2 = new SparkMax(Constants.shooterFeederMotor2ID, MotorType.kBrushless);
-
-    // Reusable control request — mutated each loop via withVelocity().
-    private final VelocityVoltage velocityRequest = new VelocityVoltage(0).withSlot(0);
+    private static final TalonFX blueMotor  = new TalonFX(Constants.blueShooterMotorID);
+    private static final TalonFX greenMotor = new TalonFX(Constants.greenShooterMotorID);
+    private static final SparkMax feeder    = new SparkMax(Constants.shooterFeederMotor1ID, MotorType.kBrushless);
 
     public Shooter(CommandXboxController joystick) {
         this.joystick = joystick;
 
-        TalonFXConfiguration blueConfig = new TalonFXConfiguration();
-        blueConfig.Slot0.kP = Constants.shooterKp;
-        blueConfig.Slot0.kI = Constants.shooterKi;
-        blueConfig.Slot0.kD = Constants.shooterKd;
-        blueConfig.Slot0.kV = Constants.shooterKv;
-        blueMotor.getConfigurator().apply(blueConfig);
-
-        // Green spins opposite to blue so both wheels propel the game piece the same way.
-        // Same PID gains, but Clockwise_Positive so a positive RPS target spins it the other direction.
+        // Green spins opposite to blue so both wheels propel the game piece the same way
         TalonFXConfiguration greenConfig = new TalonFXConfiguration();
-        greenConfig.Slot0.kP = Constants.shooterKp;
-        greenConfig.Slot0.kI = Constants.shooterKi;
-        greenConfig.Slot0.kD = Constants.shooterKd;
-        greenConfig.Slot0.kV = Constants.shooterKv;
-        // greenConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        greenConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         greenMotor.getConfigurator().apply(greenConfig);
+
+        // Slot 1: velocity closed-loop gains used by preset mode
+        Slot1Configs slot1 = new Slot1Configs();
+        slot1.kV = Constants.shooterKv;
+        slot1.kP = Constants.shooterKp;
+        blueMotor.getConfigurator().apply(slot1);
+        greenMotor.getConfigurator().apply(slot1);
     }
 
-    /** Send each flywheel motor to its own velocity target. Updates telemetry fields. */
-    private void setShooterRps(double blueRps, double greenRps) {
-        blueMotor.setControl(velocityRequest.withVelocity(blueRps));
-        greenMotor.setControl(velocityRequest.withVelocity(greenRps));
-        targetRpm      = blueRps  * 60.0;
-        targetGreenRpm = greenRps * 60.0;
+    /** Set shooting mode (MEDIUM or FAR). */
+    public static void setShootingMode(ShootingMode mode) {
+        shootingMode = mode;
+    }
+
+    /** Reset to competition defaults (called on teleop init). */
+    public static void resetToDefaults() {
+        shootingMode = ShootingMode.MEDIUM;
+    }
+
+    /**
+     * Hold this command to run flywheels + feeder at the currently selected preset RPM.
+     * Releasing returns control to left-Y joystick.
+     */
+    public Command runShooterAtPresetCommand() {
+        return Commands.startEnd(
+            () -> {
+                presetActive = true;
+                presetFeedsEnabled = true;
+            },
+            () -> {
+                presetActive = false;
+                feeder.set(0);
+            },
+            this
+        );
+    }
+
+    /**
+     * Hold this command to run flywheels at preset RPM without running the feeder.
+     * Releasing returns control to left-Y joystick.
+     */
+    public Command warmupShooterAtPresetCommand() {
+        return Commands.startEnd(
+            () -> {
+                presetActive = true;
+                presetFeedsEnabled = false;
+            },
+            () -> {
+                presetActive = false;
+                feeder.set(0);
+            },
+            this
+        );
     }
 
     public static void setFeederPower(double power) {
-        power *= -1;
-        feeder1.set(power);
-        feeder2.set(power);
+        feeder.set(-power);
     }
 
-    public Command runFeederMotors(double power){
-        return new RunCommand(()->{
-            setFeederPower(power);
-        }, this);
+    public Command runFeederMotors(double power) {
+        return new RunCommand(() -> setFeederPower(power), this);
     }
 
-    /** Manual joystick control — active whenever no other command requires this subsystem. */
-    public Command getDefaultCommand() {
-        return new RunCommand(() -> {
-            double input = joystick.getRightY();
-            if (Math.abs(input) < Constants.shooterJoystickDeadband) input = 0.0;
-            // Velocity-based default (disabled).
-            // double rps = input * Constants.shooterMaxRps;
-            // setShooterRps(rps, rps);
-            double power = input * 0.35;
-            blueMotor.set(power);
-            greenMotor.set(power);
-        }, this);
-    }
-
-    // public Command runShooterCommand(double power){
-    //     return new RunCommand(()->{
-    //         blueMotor.set(power);
-    //         greenMotor.set(power);
-    //     }, this);
-    // }
-
-    /**
-     * Sets RPM from the AprilTag distance curve.
-     * Designed to be bound to a button with whileTrue() — default command resumes on release.
-     */
-    public Command autoRpmFromDistanceCommand() {
-        return new RunCommand(() -> {
-            double dist = UdpTelemetryReceiver.nearestProcessorDistMeters
-                        * Constants.shooterDistanceScale + Constants.shooterDistanceBias;
-            double blueRpm  = Double.isFinite(dist) ? BLUE_RPM_CURVE.get(dist)  : 0.0;
-            double greenRpm = Double.isFinite(dist) ? GREEN_RPM_CURVE.get(dist) : 0.0;
-            setShooterRps(blueRpm / 60.0, greenRpm / 60.0);
-        }, this);
-    }
-
-    /** Always runs — only reads sensors and updates telemetry fields, never commands motors. */
     @Override
     public void periodic() {
-        // currentRpm   = blueMotor.getVelocity().getValueAsDouble() * 60.0;
-        // shooterPower = blueMotor.getDutyCycle().getValueAsDouble();
-        blueMotor.set(0.85*(joystick.getRightY()));
-        greenMotor.set(0.85*(joystick.getRightY()));
+        if (presetActive) {
+            double blueTargetRpm, greenTargetRpm;
+            if (shootingMode == ShootingMode.FAR) {
+                blueTargetRpm  = Constants.closeShooterBlueRpm;
+                greenTargetRpm = Constants.closeShooterGreenRpm;
+            } else { // MEDIUM
+                blueTargetRpm  = Constants.mediumShooterRpm;
+                greenTargetRpm = Constants.mediumShooterRpm;
+            }
+            blueMotor.setControl(velocityRequest.withVelocity(blueTargetRpm / 60.0));
+            greenMotor.setControl(velocityRequest.withVelocity(greenTargetRpm / 60.0));
+            boolean atSpeed = currentRpm >= 0.9 * blueTargetRpm;
+            feeder.set((presetFeedsEnabled && atSpeed) ? Constants.presetFeederPower : 0.0);
+        } else {
+            double input = joystick.getLeftY();
+            blueMotor.set(0.9*input);
+            greenMotor.set(0.9*input);
+            feeder.set(input);  // feeder runs with shooter via left Y
+        }
+        currentRpm      = blueMotor.getVelocity().getValueAsDouble() * 60.0;
+        currentGreenRpm = greenMotor.getVelocity().getValueAsDouble() * 60.0;
     }
 }
